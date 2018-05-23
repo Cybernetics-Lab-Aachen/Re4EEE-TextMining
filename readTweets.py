@@ -1,6 +1,8 @@
 # TODO: Get JSON directly from web
 # TODO: Check with Thorsten about deleting any URLs to other tweets (deleting anything after https)
 # TODO: Should I replace any other punctuation besides hyphens?
+# TODO: Remove most frequent words?
+# TODO: Remove least frequent words?
 
 import urllib.request               # lib that handles the url code
 import json                         # lib for json code
