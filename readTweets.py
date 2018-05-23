@@ -1,8 +1,7 @@
 # TODO: Get JSON directly from web
 # TODO: Check with Thorsten about deleting any URLs to other tweets (deleting anything after https)
 # TODO: Should I replace any other punctuation besides hyphens?
-# TODO: Remove most frequent words?
-# TODO: Remove least frequent words?
+# TODO: Ordering of preprocessing and statistics?
 
 import urllib.request               # lib that handles the url code
 import json                         # lib for json code
@@ -47,6 +46,7 @@ def most_freq(data):
         freq_list.append(p['Text'])
     freq = pd.Series(' '.join(freq_list).split()).value_counts()[:10]
     print(freq)
+    remove_words(freq, data)
 
 # Prints least frequent words used in all tweets of passed dictionary
 def least_freq(data):
@@ -55,6 +55,17 @@ def least_freq(data):
         freq_list.append(p['Text'])
     freq = pd.Series(' '.join(freq_list).split()).value_counts()[-10:]
     print(freq)
+    remove_words(freq, data)
+
+# Removes words in freq from data tweets
+def remove_words(freq, data):
+    for p in data['Tweets']:
+        string = ""
+        for x in p['Text'].split():
+            if x not in freq:
+                string = string + x + " "
+        string.strip()
+        p['Text'] = string
 
 
 """ # Open website URL to read data
@@ -105,10 +116,14 @@ with open('tweets2205.json', encoding="utf8") as json_file:
 
         p['Text'] = string 
 
+    #print (json.dumps(data, indent=4, sort_keys=True))
+    
     #lemmatizing(data)
     #stemming(data)
+    
+    #print (json.dumps(data, indent=4, sort_keys=True))
+
+    most_freq(data)
+    least_freq(data)
 
     print (json.dumps(data, indent=4, sort_keys=True))
-
-    #most_freq(data)
-    #least_freq(data)
