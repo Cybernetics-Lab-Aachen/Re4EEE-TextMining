@@ -1,9 +1,6 @@
-#  -*- coding: utf-8 -*-
+import math
+from textblob import TextBlob as tb
 
-# TODO: Get JSON directly from web
-# TODO: Hashtag/Hyphen handling
-
-# Imports for program
 import urllib.request               # lib that handles the url code
 import json                         # lib for json code
 import re                           # lib for regular expressions
@@ -47,13 +44,6 @@ def preprocess(s, lowercase=False):
     if lowercase:
         tokens = [token if emoticon_re.search(token) else token.lower() for token in tokens]
     return tokens
-
-
-# Finding whole words in a string
-# Author: Hugh Bothwell
-# https://stackoverflow.com/questions/5319922/python-check-if-word-is-in-a-string
-def findWholeWord(w):
-    return re.compile(r'\b({0})\b'.format(w), flags=re.IGNORECASE).search
 
 
 # Replacing contractions in tweets, modified for program
@@ -193,6 +183,15 @@ def expandContractions(text, c_re=c_re):
 # Author: Shubham Jaim
 # https://www.analyticsvidhya.com/blog/2018/02/the-different-methods-deal-text-data-predictive-python/
 
+# Returns the average word length in the passed string
+# Handles tweets of 0 length by returning 0
+def avg_word(sentence):
+    words = sentence.split()
+    if (len(words) == 0): 
+        return 0
+    else :
+        return (sum(len(word) for word in words)/len(words))
+
 # Executes stemming on every tweet in passed dictionary
 def stemming(data):
     from nltk.stem import PorterStemmer
@@ -201,7 +200,7 @@ def stemming(data):
         string = ""
         for word in p['Text'].split(): 
             string = string + st.stem(word) + " "
-        string = string.strip()
+        string.strip()
         p['Text'] = string
 
 # Executes lemmatizing on every tweet in passed dictionary
@@ -211,7 +210,7 @@ def lemmatizing(data):
         string = ""
         for word in p['Text'].split(): 
             string = string + Word(word).lemmatize() + " "
-        string = string.strip()
+        string.strip()
         p['Text'] = string
 
 # Prints most frequent words used in all tweets of passed dictionary
@@ -221,6 +220,7 @@ def most_freq(data):
         freq_list.append(p['Text'])
     freq = pd.Series(' '.join(freq_list).split()).value_counts()[:10]
     print(freq)
+    remove_words(freq, data)
 
 # Prints least frequent words used in all tweets of passed dictionary
 def least_freq(data):
@@ -229,11 +229,31 @@ def least_freq(data):
         freq_list.append(p['Text'])
     freq = pd.Series(' '.join(freq_list).split()).value_counts()[-10:]
     print(freq)
+    remove_words(freq, data)
+
+# Removes words in freq from data tweets
+def remove_words(freq, data):
+    for p in data['Tweets']:
+        string = ""
+        for x in p['Text'].split():
+            if x not in freq:
+                string = string + x + " "
+        string.strip()
+        p['Text'] = string
 
 # Calculates term frequency of word in a tweet
 # Outputs number
 def term_freq(x, tweet):
     return tweet.count(x)/len(tweet.split())
+    """ new_dict = {}
+    s = ""
+    for p in data['Tweets']:
+        s = s + p['Text'].lstrip('#') + " " 
+    series = pd.value_counts(s.split())
+    num_terms = sum(series.tolist())
+    for q in series.axes[0]:
+        new_dict[q] = series[q]/num_terms
+    return new_dict """
 
 # Calculates inverse frequency per word
 # Outputs dictionary of word and idf value
@@ -246,10 +266,10 @@ def inv_doc_freq(data):
     s = s.strip()
     series = pd.value_counts(s.split())
     for x in series.axes[0]:
+        #print(x)
         count = 0
         for q in data['Tweets']:
-            boolean = findWholeWord(x)(q['Text'])
-            if boolean is not None:
+            if x in q['Text']:
                 count = count + 1 
         if count == 0:
             print("THIS IS A CRITICAL ERROR",x,"DOES NOT SHOW UP IN ANY TWEETS")
@@ -257,9 +277,9 @@ def inv_doc_freq(data):
             new_dict[x] = np.log(num_tweets/count)
     return new_dict
 
-# Determines whether given string is a number through attempting a float cast
-# Author: Daniel Goldberg
-# https://stackoverflow.com/questions/354038/how-do-i-check-if-a-string-is-a-number-float
+# Determines whether given string is a number
+# If float casting works, returns true
+# Else, return false
 def is_number(s):
     try:
         float(s)
@@ -267,22 +287,34 @@ def is_number(s):
     except ValueError:
         return False
 
+def tf(word, blob):
+    return blob.words.count(word) / len(blob.words)
 
-""" # Open website URL to read data
-data = urllib.request.urlopen("http://triton.zlw-ima.rwth-aachen.de:50001/twitter") # it's a file like object and works just like a file
-for line in data: # files are iterable
-    print (line) """
+def n_containing(word, bloblist):
+    return sum(1 for blob in bloblist if word in blob.words)
 
-# Parse tweets from JSON file
+def idf(word, bloblist):
+    return math.log(len(bloblist) / (n_containing(word, bloblist)))
+
+def tfidf(word, blob, bloblist):
+    num = tf(word, blob) * idf(word, bloblist)
+    print(word, num)
+    return num
+
 with open('tweets2205.json', encoding='utf-8') as json_file:
     data = json.load(json_file)
-    stop = list(stopwords.words('english'))
-    stop.append("new")
-    stop.append("one")
+    stop = stopwords.words('english')
+    # Iterate through every tweet
     for p in data['Tweets']:
 
         #-----------------------Tweet analytics BEFORE PREPROCESSING-----------------------#
+        p['word_count'] = len(str(p['Text']).split(" "))
+        p['char_count'] = len(p['Text'])
+        p['avg_word_length'] = avg_word(p['Text'])
+        p['stopwords'] = len([x for x in p['Text'].split() if x in stop])
         p['hashtags'] = len([x for x in p['Text'].split() if x.startswith('#')])
+        p['numerics'] = len([x for x in p['Text'].split() if x.isdigit()])
+        p['uppercase'] = len([x for x in p['Text'].split() if x.isupper()])
 
         #-----------------------Text Preprocessing----------------------#
         tweet_str = ""
@@ -363,45 +395,15 @@ with open('tweets2205.json', encoding='utf-8') as json_file:
             tweet_str = tweet_str.strip()
             tweet_str = tweet_str.lower()
             p['Text'] = tweet_str
+            p['word_count'] = len(str(p['Text']).split(" "))
 
-    #stemming(data)
-    lemmatizing(data)
-    
-    # Make dictionary of tweets: key is number of tweet, value is dictionary of words and tf values
-    tweet_dict = OrderedDict()
-    tweet_num = 0
-    for p in data['Tweets']:
-        tf_dict = {}
-        for x in p['Text'].split():
-            tf_dict[x] = term_freq(x, p['Text'])
-        tweet_dict[tweet_num] = tf_dict
-        tweet_num += 1
+bloblist = []
+for p in data['Tweets']:
+    bloblist.append(tb(p['Text']))
 
-    # Make idf dictionary
-    idf_dict = inv_doc_freq(data)
-
-    #print (json.dumps(data, indent=4, sort_keys=True))
-
-    tuple_list = []
-
-    for x in tweet_dict:
-        single_tweet_dict = tweet_dict.get(x)
-        for y in single_tweet_dict:
-            tup = (y, single_tweet_dict.get(y)*idf_dict[y])
-            tuple_list.append(tup)
-            #print('{:>20}  {:>20}  {:>20}  {:>20}'.format(y,"{0:.4f}".format(single_tweet_dict.get(y)), "{0:.4f}".format(idf_dict.get(y)), "{0:.4f}".format(single_tweet_dict.get(y)*idf_dict[y])))
-
-    printed_words = set()
-    sorted_by_value = sorted(tuple_list, key=lambda tup: tup[1], reverse=True)
-    numPrinted = 0
-    x = 0
-    while (numPrinted < 500):
-        tupleToPrint = sorted_by_value[x]
-        if tupleToPrint[0] in printed_words:
-            x += 1
-            continue
-        else:
-            print(tupleToPrint)
-            printed_words.add(tupleToPrint[0])
-            numPrinted += 1
-            x += 1
+for i, blob in enumerate(bloblist):
+    print("Top words in document {}".format(i + 1))
+    scores = {word: tfidf(word, blob, bloblist) for word in blob.words}
+    sorted_words = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    #for word, score in sorted_words[:3]:
+        #print("\tWord: {}, TF-IDF: {}".format(word, round(score, 5)))
