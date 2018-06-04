@@ -11,6 +11,9 @@ import pandas as pd                 # lib for data processing
 import numpy as np                  # lib for idf log
 from nltk.corpus import stopwords   # lib for stop words
 from collections import OrderedDict
+from textblob import TextBlob
+import matplotlib.pyplot as plt
+
 
 
 # Tokenization/parsing of tweets: methods and code
@@ -267,6 +270,19 @@ def is_number(s):
     except ValueError:
         return False
 
+def analyze_sentiment(tweet):
+    '''
+    Utility function to classify the polarity of a tweet
+    using textblob.
+    '''
+    analysis = TextBlob(tweet)
+    if analysis.sentiment.polarity > 0:
+        return 1
+    elif analysis.sentiment.polarity == 0:
+        return 0
+    else:
+        return -1
+
 
 """ # Open website URL to read data
 data = urllib.request.urlopen("http://triton.zlw-ima.rwth-aachen.de:50001/twitter") # it's a file like object and works just like a file
@@ -279,6 +295,7 @@ with open('tweets2205.json', encoding='utf-8') as json_file:
     stop = list(stopwords.words('english'))
     stop.append("new")
     stop.append("one")
+    stop.append("mine")
     for p in data['Tweets']:
 
         #-----------------------Tweet analytics BEFORE PREPROCESSING-----------------------#
@@ -288,81 +305,98 @@ with open('tweets2205.json', encoding='utf-8') as json_file:
         tweet_str = ""
         p['Text'] = expandContractions(p['Text'])
         tokens = preprocess(p['Text'])
-        if len(tokens) != 0:
-            for x in tokens:
-                x = x.encode('ascii', 'ignore').decode()
-                x = x.strip()
-                x = x.lstrip('#')
-                x = x.lower()
-                if "https" in x:
-                    continue
-                elif x in stop:
-                    continue
-                elif is_number(x):
-                    continue
-                elif "@" in x:
-                    continue
-                elif "rt" == x:
-                    continue
-                elif "," in x:
-                    continue
-                elif ":" in x:
-                    continue
-                elif "#" == x:
-                    continue
-                elif "|" == x:
-                    continue
-                elif ";" == x:
-                    continue
-                elif "!" == x:
-                    continue
-                elif "'" == x:
-                    continue
-                elif '/n' == x:
-                    continue
-                elif "" == x:
-                    continue
-                elif " " == x:
-                    continue
-                elif "/" == x:
-                    continue
-                elif "?" == x:
-                    continue
-                elif "&" == x:
-                    continue
-                elif '"' == x:
-                    continue
-                elif '-' == x:
-                    continue
-                elif '_' == x:
-                    continue
-                elif '.' == x:
-                    continue
-                elif '%' == x:
-                    continue
-                elif '(' == x:
-                    continue
-                elif ')' == x:
-                    continue
-                elif '$' == x:
-                    continue
-                elif '[' == x:
-                    continue
-                elif ']' == x:
-                    continue
-                elif '*' == x:
-                    continue
-                elif '-' in x:
-                    x = x.replace('-',' ')
-                elif len(x) < 3:
-                    continue
-                elif "'s" in x:
-                    x = x[:-2]
-                else:
-                    tweet_str = tweet_str + x + " "
-            tweet_str = tweet_str.strip()
-            tweet_str = tweet_str.lower()
-            p['Text'] = tweet_str
+        for x in tokens:
+            x = x.encode('ascii', 'ignore').decode()
+            x = x.strip()
+            x = x.lstrip('#')
+            x = x.lower()
+            if "https" in x:
+                continue
+            elif x in stop:
+                continue
+            elif is_number(x):
+                continue
+            elif "@" in x:
+                continue
+            elif "rt" == x:
+                continue
+            elif "," in x:
+                continue
+            elif ":" in x:
+                continue
+            elif "#" == x:
+                continue
+            elif "|" == x:
+                continue
+            elif ";" == x:
+                continue
+            elif "!" == x:
+                continue
+            elif "'" == x:
+                continue
+            elif '/n' == x:
+                continue
+            elif "" == x:
+                continue
+            elif " " == x:
+                continue
+            elif "/" == x:
+                continue
+            elif "?" == x:
+                continue
+            elif "&" == x:
+                continue
+            elif '"' == x:
+                continue
+            elif '-' == x:
+                continue
+            elif '_' == x:
+                continue
+            elif '.' == x:
+                continue
+            elif '%' == x:
+                continue
+            elif '(' == x:
+                continue
+            elif ')' == x:
+                continue
+            elif '$' == x:
+                continue
+            elif '[' == x:
+                continue
+            elif ']' == x:
+                continue
+            elif '*' == x:
+                continue
+            elif '-' in x:
+                x = x.replace('-',' ')
+            elif len(x) < 3:
+                continue
+            elif "'s" in x:
+                x = x[:-2]
+            else:
+                tweet_str = tweet_str + x + " "
+        tweet_str = tweet_str.strip()
+        tweet_str = tweet_str.lower()
+        p['Text'] = tweet_str   
+ 
+    sa_list = [0, 0, 0]
+    new_tweets = []
+    iterator = 0
+    for x in data['Tweets'] :
+        if len(x['Text'].split()) < 3 or x['Text'] == "":
+            continue
+        else:
+            new_tweets.append(x)
+            num = analyze_sentiment(x['Text'])
+            x['SA'] = num
+            if num == -1:
+                sa_list[0] += 1
+            elif num == 0:
+                sa_list[1] += 1
+            elif num == 1:
+                sa_list[2] += 1
+    data['Tweets'] = new_tweets
 
     #stemming(data)
     lemmatizing(data)
@@ -380,7 +414,7 @@ with open('tweets2205.json', encoding='utf-8') as json_file:
     # Make idf dictionary
     idf_dict = inv_doc_freq(data)
 
-    #print (json.dumps(data, indent=4, sort_keys=True))
+    #print(json.dumps(data, indent=4, sort_keys=True))
 
     tuple_list = []
 
@@ -395,6 +429,9 @@ with open('tweets2205.json', encoding='utf-8') as json_file:
     sorted_by_value = sorted(tuple_list, key=lambda tup: tup[1], reverse=True)
     numPrinted = 0
     x = 0
+    arr1 = range(0,500)
+
+    arr2 = []
     while (numPrinted < 500):
         tupleToPrint = sorted_by_value[x]
         if tupleToPrint[0] in printed_words:
@@ -403,5 +440,11 @@ with open('tweets2205.json', encoding='utf-8') as json_file:
         else:
             print(tupleToPrint)
             printed_words.add(tupleToPrint[0])
+            arr2.append(tupleToPrint[1])
             numPrinted += 1
             x += 1
+
+    plt.scatter(arr1, arr2, marker='o')
+    plt.show()
+
+    print(sa_list)
