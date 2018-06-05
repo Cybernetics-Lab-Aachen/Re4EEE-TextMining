@@ -6,7 +6,6 @@ import inflect
 from nltk.corpus import stopwords
 from nltk.stem import LancasterStemmer, WordNetLemmatizer
 
-
 # Remove brackets, punctuation etc.
 def denoise(sample):
     index = sample.find("Text")
@@ -74,7 +73,6 @@ def remove_low_frequency(words):
         if item[0] in counts and counts[item[0]] != 1:
             filtered.append(item[0])
     return filtered
-
 
 # Process a wiki document
 def process(text):

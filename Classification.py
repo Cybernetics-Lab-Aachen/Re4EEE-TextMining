@@ -44,5 +44,4 @@ def word2int(words):
 
 # Get word2vec representation
 def compute_word2vec(corpus):
-    # Convert each title's text into a split form instead of a long string
-    print()
+    print("hello")
