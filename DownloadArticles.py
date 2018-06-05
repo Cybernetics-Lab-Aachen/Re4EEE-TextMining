@@ -18,8 +18,7 @@ lines = index.readlines()
 start_time = time.clock()
 
 # Download relevant texts
-rand = randint(1, 18458000)
-for j in range(rand, rand + 1000):
+for i in range(13025100, 13030100):
     title = lines[i].split(":")[2].strip("\n")
     if not any(title in file for file in os.listdir(".\\files_of_interest")):
         webpage = requests.get("http://triton.zlw-ima.rwth-aachen.de:50001/wikipedia/getArticleByTitle?title=" + urllib.parse.quote_plus(title)).content

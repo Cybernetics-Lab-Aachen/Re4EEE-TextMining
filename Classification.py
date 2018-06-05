@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow as tf
 import math
 
+
 # Calculate term relevance for a document compared to all docs
 def calculate_tfidf(corpusValue, corpusValues):
     # Compute tf for each word in doc(times appearing in doc/total num words in doc)
