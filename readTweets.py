@@ -14,6 +14,17 @@ from collections import OrderedDict
 from textblob import TextBlob
 import matplotlib.pyplot as plt
 
+def generate_wordcloud(text): # optionally add: stopwords=STOPWORDS and change the arg below
+        wordcloud = WordCloud(
+            width=800,
+            height=400,
+            font_path='DejaVuSans.ttf',
+            relative_scaling = 1.0
+        ).generate(text)
+        plt.imshow(wordcloud)
+        plt.axis("off")
+        plt.show()
+
 
 
 # Tokenization/parsing of tweets: methods and code
@@ -386,6 +397,8 @@ with open('tweets2205.json', encoding='utf-8') as json_file:
     for x in data['Tweets'] :
         if len(x['Text'].split()) < 3 or x['Text'] == "":
             continue
+        elif "discount" in x['Text']:
+            continue
         else:
             new_tweets.append(x)
             num = analyze_sentiment(x['Text'])
@@ -404,13 +417,15 @@ with open('tweets2205.json', encoding='utf-8') as json_file:
     # Make dictionary of tweets: key is number of tweet, value is dictionary of words and tf values
     tweet_dict = OrderedDict()
     tweet_num = 0
+    wc_tweet_str = ""
     for p in data['Tweets']:
         tf_dict = {}
         for x in p['Text'].split():
             tf_dict[x] = term_freq(x, p['Text'])
+            wc_tweet_str = wc_tweet_str + " " + x
         tweet_dict[tweet_num] = tf_dict
         tweet_num += 1
-
+    wc_tweet_str = wc_tweet_str.strip()
     # Make idf dictionary
     idf_dict = inv_doc_freq(data)
 
@@ -448,3 +463,12 @@ with open('tweets2205.json', encoding='utf-8') as json_file:
     plt.show()
 
     print(sa_list)
+
+    ## Simple WordCloud
+    from wordcloud import WordCloud, STOPWORDS 
+
+    
+
+    generate_wordcloud(wc_tweet_str)
+
+
