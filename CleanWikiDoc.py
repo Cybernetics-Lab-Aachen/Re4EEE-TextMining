@@ -1,4 +1,4 @@
-# A script for cleaning up wikipedia dumps and preprocessing
+# A script for cleaning up wikipedia dump files and preprocessing
 import re
 import nltk
 import contractions
@@ -20,7 +20,7 @@ def replace_contractions(sample):
 
 
 # Replace numbers with word equivalents
-def replace_nums(list):
+def replace_nums(words):
     p = inflect.engine()
     new_words = []
     for word in words:
@@ -53,8 +53,8 @@ def remove_stops(words):
     return filtered
 
 
-# Get word count for each word
-def word_count(words):
+# Get frequency for each word
+def word_frequency(words):
     dictionary = dict()
     for word in words:
         if word in dictionary:
@@ -66,7 +66,7 @@ def word_count(words):
 
 # Remove low frequency words with little effect on results
 def remove_low_frequency(words):
-    counts = word_count(words)
+    counts = word_frequency(words)
     items = counts.items()
     filtered = []
     for item in items:
@@ -74,21 +74,19 @@ def remove_low_frequency(words):
             filtered.append(item[0])
     return filtered
 
+# Process a wiki document
+def process(text):
+    # Clean up the text
+    text = denoise(text)
+    text = replace_contractions(text)
 
-# Get the text
-file = open("testfile.txt", "r", encoding="utf8")
-text = file.read()
+    # Tokenize, normalize, lemmatize, remove low frequency words
+    words = nltk.word_tokenize(text)
+    words = replace_nums(words)
+    words = remove_stops(words)
+    words = lemmatize(words)
+    words = remove_low_frequency(words)
+    return ' '.join(words)
 
-# Clean up the text
-text = denoise(text)
-text = replace_contractions(text)
-
-# Tokenize, normalize, lemmatize, remove low frequency words
-words = nltk.word_tokenize(text)
-words = replace_nums(words)
-words = remove_stops(words)
-words = lemmatize(words)
-words = remove_low_frequency(words)
-print(words)
 
 
