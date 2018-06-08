@@ -25,7 +25,7 @@ class myThread (threading.Thread):
 def runThroughArticles(numbers, lines):
     for i in numbers:
         title = lines[i].split(":")[2].strip("\n")
-        if not any(title in file for file in os.listdir("..\\sample_set")):
+        if not any(title in file for file in os.listdir("./sample_set")):
             webpage = requests.get("http://triton.zlw-ima.rwth-aachen.de:50001/wikipedia/getArticleByTitle?title=" + urllib.parse.quote_plus(title)).content
             readArticle(webpage, title)
             print(time.clock() - start_time, "seconds")
@@ -35,7 +35,7 @@ def readArticle(webpage, title):
         text = soup.getText().lower()
         if ('learn' in text or 'educat' in text) and ('teach' in text or 'student' in text) \
                 and ('method' in text or 'tool' in text or 'concept' in text or 'platform' in text or 'tech' in text):
-            file = open('..\\sample_set\\' + re.sub("[^A-Za-z]", " ", title) + '.txt', 'w', encoding='utf-8')
+            file = open('./sample_set/' + re.sub("[^A-Za-z]", " ", title) + '.txt', 'w', encoding='utf-8')
             file.write(text)
             file.close()
     
@@ -46,7 +46,7 @@ def split_list(a_list):
 my_randoms = random.sample(range(1, 18458000), 1000)
 
 # Read index file
-index = open("C:\\Users\\useradmin\\Desktop\\index.txt", "r", encoding="utf-8")
+index = open("./index.txt", "r", encoding="utf-8")
 lines = index.readlines()
 
 x, y = split_list(my_randoms)
