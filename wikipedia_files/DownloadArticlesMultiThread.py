@@ -72,7 +72,7 @@ newfilepath = os.path.join("./", 'index.txt')
 with open(newfilepath, 'wb') as new_file, bz2.BZ2File(filepath, 'rb') as file:
     for data in iter(lambda : file.read(100 * 1024), b''):
         new_file.write(data)
-
+print("Index file read and written")
 # Read index file
 index = open("./index.txt", "r", encoding="utf-8")
 lines = index.readlines()
