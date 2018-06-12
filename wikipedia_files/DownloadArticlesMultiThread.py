@@ -37,7 +37,11 @@ def runThroughArticles(numbers, lines):
     for i in numbers:
         title = lines[i].split(":")[2].strip("\n")
         if not any(title in file for file in os.listdir("./sample_set")):
-            webpage = requests.get("http://triton.zlw-ima.rwth-aachen.de:50001/wikipedia/getArticleByTitle?title=" + urllib.parse.quote_plus(title)).content
+            try:
+                webpage = requests.get("http://triton.zlw-ima.rwth-aachen.de:50001/wikipedia/getArticleByTitle?title=" + urllib.parse.quote_plus(title)).content
+            except requests.exceptions.RequestException as e:  # This is the correct syntax
+                print(e)
+                exit(1)
             readArticle(webpage, title)
             print(time.clock() - start_time, "seconds")
 
@@ -56,7 +60,11 @@ def split_list(a_list):
 
 my_randoms = random.sample(range(1, 18458000), 1000)
 
-download_file("https://dumps.wikimedia.org/enwiki/20180501/enwiki-20180501-pages-articles-multistream-index.txt.bz2")
+try:
+    download_file("https://dumps.wikimedia.org/enwiki/20180501/enwiki-20180501-pages-articles-multistream-index.txt.bz2")
+except requests.exceptions.RequestException as e:  # This is the correct syntax
+    print(e)
+    exit(1)
 
 filepath = os.path.join("./", "enwiki-20180501-pages-articles-multistream-index.txt.bz2")
 newfilepath = os.path.join("./", 'index.txt')
