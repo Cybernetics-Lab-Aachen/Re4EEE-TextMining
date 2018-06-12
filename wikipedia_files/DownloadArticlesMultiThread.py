@@ -8,6 +8,7 @@ import re
 import random
 import shutil
 import bz2
+from requests.exceptions import ConnectionError
 
 
 # import sqlite3
@@ -39,7 +40,7 @@ def runThroughArticles(numbers, lines):
         if not any(title in file for file in os.listdir("./sample_set")):
             try:
                 webpage = requests.get("http://triton.zlw-ima.rwth-aachen.de:50001/wikipedia/getArticleByTitle?title=" + urllib.parse.quote_plus(title)).content
-            except requests.exceptions.RequestException as e:  # This is the correct syntax
+            except ConnectionError as e:  # This is the correct syntax
                 print(e)
                 exit(1)
             readArticle(webpage, title)
@@ -62,7 +63,7 @@ my_randoms = random.sample(range(1, 18458000), 1000)
 
 try:
     download_file("https://dumps.wikimedia.org/enwiki/20180501/enwiki-20180501-pages-articles-multistream-index.txt.bz2")
-except requests.exceptions.RequestException as e:  # This is the correct syntax
+except ConnectionError as e:  # This is the correct syntax
     print(e)
     exit(1)
 
