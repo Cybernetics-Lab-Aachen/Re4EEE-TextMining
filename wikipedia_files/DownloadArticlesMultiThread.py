@@ -6,6 +6,9 @@ import os
 import urllib.parse
 import re
 import random
+import shutil
+import bz2
+
 
 # import sqlite3
 # # Connect to sqlite
@@ -21,6 +24,14 @@ class myThread (threading.Thread):
       self.lines = lines
    def run(self):
       runThroughArticles(self.numbers, self.lines)
+
+def download_file(url):
+    local_filename = url.split('/')[-1]
+    r = requests.get(url, stream=True)
+    with open(local_filename, 'wb') as f:
+        shutil.copyfileobj(r.raw, f)
+
+    return local_filename
 
 def runThroughArticles(numbers, lines):
     for i in numbers:
@@ -44,6 +55,14 @@ def split_list(a_list):
     return a_list[:half], a_list[half:]
 
 my_randoms = random.sample(range(1, 18458000), 1000)
+
+download_file("https://dumps.wikimedia.org/enwiki/20180501/enwiki-20180501-pages-articles-multistream-index.txt.bz2")
+
+filepath = os.path.join("./", "enwiki-20180501-pages-articles-multistream-index.txt.bz2")
+newfilepath = os.path.join("./", 'index.txt')
+with open(newfilepath, 'wb') as new_file, bz2.BZ2File(filepath, 'rb') as file:
+    for data in iter(lambda : file.read(100 * 1024), b''):
+        new_file.write(data)
 
 # Read index file
 index = open("./index.txt", "r", encoding="utf-8")
