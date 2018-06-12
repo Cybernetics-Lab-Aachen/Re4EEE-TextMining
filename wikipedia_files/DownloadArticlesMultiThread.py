@@ -39,7 +39,7 @@ def runThroughArticles(numbers, lines):
         title = lines[i].split(":")[2].strip("\n")
         if not any(title in file for file in os.listdir("./sample_set")):
             try:
-                webpage = requests.get("http://triton.zlw-ima.rwth-aachen.de:50001/wikipedia/getArticleByTitle?title=" + urllib.parse.quote_plus(title)).content
+                webpage = requests.get("http://re4eee-data-proxy:50001/wikipedia/getArticleByTitle?title=" + urllib.parse.quote_plus(title)).content
             except ConnectionError as e:  # This is the correct syntax
                 print(e)
                 exit(1)
