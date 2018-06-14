@@ -44,6 +44,7 @@ def runThroughArticles(numbers, lines):
                 print(e)
                 exit(1)
             readArticle(webpage, title)
+            print(time.clock())
             print(time.clock() - start_time, "seconds")
 
 def readArticle(webpage, title):
@@ -104,6 +105,7 @@ threadList = []
 threadID = 1
 
 start_time = time.clock()
+print(start_time)
 
 for i in range(16):
     thread = myThread(threadID, threadNameList[i], listsList[i], lines)
