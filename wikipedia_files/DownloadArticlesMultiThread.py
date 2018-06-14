@@ -43,9 +43,7 @@ def runThroughArticles(numbers, lines):
             except ConnectionError as e:  # This is the correct syntax
                 print(e)
                 exit(1)
-            readArticle(webpage, title)
-            print(int(time.process_time()))
-            print(int(time.process_time() - start_time), "seconds")
+            readArticle(webpage, title)           
 
 def readArticle(webpage, title):
         soup = bs4.BeautifulSoup(webpage, "lxml")
@@ -116,6 +114,7 @@ for i in range(16):
 for t in threadList:
    t.join()
 
+print(int(time.process_time() - start_time), "seconds")
 print ("Exiting Main Thread")
 
 # First attempt 2 threads: 68.29056655360719 seconds
