@@ -44,8 +44,8 @@ def runThroughArticles(numbers, lines):
                 print(e)
                 exit(1)
             readArticle(webpage, title)
-            print(str(time.process_time()))
-            print(str(time.process_time() - start_time), "seconds")
+            print(float(time.process_time()))
+            print(float(time.process_time() - start_time), "seconds")
 
 def readArticle(webpage, title):
         soup = bs4.BeautifulSoup(webpage, "lxml")
