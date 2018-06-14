@@ -58,7 +58,7 @@ def split_list(a_list):
     half = int(len(a_list)/2)
     return a_list[:half], a_list[half:]
 
-my_randoms = random.sample(range(1, 18458000), 10000)
+my_randoms = random.sample(range(1, 18458000), 50000)
 
 try:
     download_file("https://dumps.wikimedia.org/enwiki/20180501/enwiki-20180501-pages-articles-multistream-index.txt.bz2")
