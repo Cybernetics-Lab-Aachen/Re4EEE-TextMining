@@ -44,8 +44,8 @@ def runThroughArticles(numbers, lines):
                 print(e)
                 exit(1)
             readArticle(webpage, title)
-            print(float(time.process_time()))
-            print(float(time.process_time() - start_time), "seconds")
+            print(int(time.process_time()))
+            print(int(time.process_time() - start_time), "seconds")
 
 def readArticle(webpage, title):
         soup = bs4.BeautifulSoup(webpage, "lxml")
@@ -104,7 +104,7 @@ threadNameList = ["Thread-1","Thread-2","Thread-3","Thread-4","Thread-5","Thread
 threadList = []
 threadID = 1
 
-start_time = time.process_time()
+start_time = int(time.process_time())
 print(start_time)
 
 for i in range(16):
