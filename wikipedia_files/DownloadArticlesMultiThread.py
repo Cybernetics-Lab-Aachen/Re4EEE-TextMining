@@ -103,7 +103,6 @@ threadList = []
 threadID = 1
 
 start_time = int(time.process_time())
-print(start_time)
 
 for i in range(16):
     thread = myThread(threadID, threadNameList[i], listsList[i], lines)
