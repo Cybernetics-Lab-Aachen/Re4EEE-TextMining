@@ -1,36 +1,57 @@
 # Class for handling classification algorithms
-import numpy as np
-import tensorflow as tf
+from wikipedia_files import CleanWikiDocs
 import math
+import os
+import operator
+import en_core_web_sm
+import time
 
+# Initialize entity model
+nlp = en_core_web_sm.load()
 
-# Calculate term relevance for a document compared to all docs
-def calculate_tfidf(corpusValue, corpusValues):
-    # Compute tf for each word in doc(times appearing in doc/total num words in doc)
-    tfdict = {}
-    word_count = len(corpusValue)
-    for word in corpusValue:
-        if word in tfdict:
-            tfdict.update({word: tfdict[word] + 1})
-        else:
-            tfdict.update({word: 1})
-    for key in tfdict:
-        tfdict.update({key: tfdict[key]/word_count})
+# Create blacklist/whitelist
+title_blacklist = ['college', 'university', 'school', 'academy', 'institute', 'centre']
+text_whitelist = ['educat', 'technolog', 'learn', 'student']
 
-    # Compute idf for each word(log(number of docs/number of docs with word w))
-    idfdict = {}
-    for word in corpusValue:
-        docs_with_word = 0
-        for item in corpusValues:
-            if word in item:
-                docs_with_word += 1
-        idfdict.update({word: math.log(len(corpusValues) / docs_with_word)})
-
-    # Compute tfidf for each word
+# Calculate term relevance for a document compared to all docs. Returns sorted list of tuples
+def compute_tfidf(doc_text, text_corpus):
     tfidfdict = {}
-    for word in corpusValue:
-        tfidfdict.update({word: tfdict[word]*idfdict[word]})
-    return tfidfdict
+    # For each word in doc
+    for word in doc_text:
+        # Update tf values (times appearing in doc/total num words in doc)
+        if word in tfidfdict:
+            tfidfdict.update({word: tfidfdict[word] + (1 / len(doc_text))})
+        else:
+            tfidfdict.update({word: 1 / len(doc_text)})
+        # Update idf values (log(number of docs/number of docs with word w))
+        docs_with_word = 0
+        # Have to use a different name from doc_text so variable naming doesn't mess up
+        for doc_text2 in text_corpus:
+            if word in doc_text2:
+                docs_with_word += 1
+        tfidfdict.update({word: (math.log(len(text_corpus) / docs_with_word)) * tfidfdict[word]})
+    return sorted(tfidfdict.items(), key=operator.itemgetter(1))
+
+
+# Get top 25 words of an article given tfidf scores. Delete if not relevant to education
+def filter_tfidf(corpus):
+    iterate = corpus.copy()
+    for key in iterate.keys():
+        # Get current document word to tfidf tuple list
+        curr_tuple_list = iterate[key]
+        found = False
+        # For each of top 15 scoring words
+        for i in range(len(curr_tuple_list) - 1, len(curr_tuple_list) - 26, -1):
+            if len(curr_tuple_list) < 25:
+                break
+            # Check if top 15 words contain keywords relating to education, if not, delete article from list
+            if any(whitelist_word in curr_tuple_list[i][0] for whitelist_word in text_whitelist):
+                found = True
+                corpus.update({key: curr_tuple_list[len(curr_tuple_list) - 26: len(curr_tuple_list) -1]})
+                break
+        if not found:
+            del corpus[key]
+    return corpus
 
 
 # Get word2int translation. Return a word : integer dictionary given a string input
@@ -43,6 +64,40 @@ def word2int(words):
     return word2int
 
 
-# Get word2vec representation
+# Get word2vec representation (returns word vector given word)
 def compute_word2vec(corpus):
-    print("hello")
+    data = []
+    window_size = 2
+    # For each text in the corpus
+    for text in corpus.values():
+        # Enumerate text
+        for word_index, word in enumerate(text):
+            # Apply the window to the text, add neighbouring pairs to the data list (ensures no out of bounds)
+            for neighbour in text[max(word_index - window_size, 0): min(word_index + window_size, len(text)) + 1]:
+                if neighbour != word:
+                    data.append([word, neighbour])
+    # Convert the word pairs into numbers
+    return ''
+
+
+# Get the corpus from the sample files (returns a doc title : cleaned split string dictionary)
+def generate_corpus():
+    corpus = {}
+    for filename in os.listdir(".\\sample_set"):
+        with open('.\\sample_set\\' + filename, 'r', encoding='utf-8') as myfile:
+            text = myfile.read()
+            title = filename.replace(".txt", "").strip()
+            # Make sure title not about school or person/Don't add a text unless it contains some education keywords
+            if all(whitelist_word in text.lower() for whitelist_word in text_whitelist):
+                processed_title = nlp(title)
+                if not any(ent.label_ == "PERSON" or ent.label_ == "GPE" for ent in processed_title.ents) and \
+                        not any(blacklist_word in title.lower() for blacklist_word in title_blacklist):
+                    corpus.update({title: CleanWikiDocs.process(text).split()})
+    return corpus
+
+
+# Generate corpus (apply filter)
+t = time.clock()
+corpus = generate_corpus()
+print(corpus.keys())
+print(time.clock() - t)

@@ -6,12 +6,16 @@ import inflect
 from nltk.corpus import stopwords
 from nltk.stem import LancasterStemmer, WordNetLemmatizer
 
+# Some important variables
+english_words = set(nltk.corpus.words.words())
+stops = set(stopwords.words("english"))
+
 # Remove brackets, punctuation etc.
 def denoise(sample):
     index = sample.find("Text")
     sample = sample[index+4:].lower()
     sample = re.sub("\\\\n", " ", sample)
-    return re.sub("[^a-z ]", " ", sample)
+    return re.sub("[^\w\d]", " ", sample, re.UNICODE)
 
 
 # Replace contractions with full words to prevent duplicates
@@ -44,8 +48,6 @@ def lemmatize(words):
 
 # Replace unecessary words
 def remove_stops(words):
-    english_words = set(nltk.corpus.words.words())
-    stops = set(stopwords.words("english"))
     filtered = []
     for word in words:
         if word not in stops and word in english_words and len(word) != 1:
