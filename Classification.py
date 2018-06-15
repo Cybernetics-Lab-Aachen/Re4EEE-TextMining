@@ -5,7 +5,6 @@ import os
 import operator
 import en_core_web_sm
 import time
-<<<<<<< HEAD
 import threading
 
 class myThread (threading.Thread):
@@ -17,9 +16,6 @@ class myThread (threading.Thread):
       self.lines = lines
    def run(self):
       runThroughArticles(self.numbers, self.lines)
-=======
-import re
->>>>>>> f4ac70524b9a0788f195b3bb2f5cc901cc3ffcb8
 
 # Initialize entity model
 nlp = en_core_web_sm.load()
