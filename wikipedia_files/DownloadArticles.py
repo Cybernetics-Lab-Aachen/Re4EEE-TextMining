@@ -24,7 +24,7 @@ for i in range(rand, rand + 1000):
         text = soup.getText().lower()
         if ('learn' in text or 'educat' in text) and ('teach' in text or 'student' in text) \
                 and ('method' in text or 'tool' in text or 'concept' in text or 'platform' in text or 'tech' in text):
-            file = open('..\\sample_set\\' + re.sub("[^A-Za-z]", " ", title) + '.txt', 'w', encoding='utf-8')
+            file = open('..\\sample_set\\' + re.sub("[^\w\d]", " ", title, re.UNICODE) + '.txt', 'w', encoding='utf-8')
             file.write(text)
             file.close()
     count += 1
