@@ -5,6 +5,17 @@ import os
 import operator
 import en_core_web_sm
 import time
+import threading
+
+class myThread (threading.Thread):
+   def __init__(self, threadID, name, numbers, lines):
+      threading.Thread.__init__(self)
+      self.threadID = threadID
+      self.name = name
+      self.numbers = numbers
+      self.lines = lines
+   def run(self):
+      runThroughArticles(self.numbers, self.lines)
 
 # Initialize entity model
 nlp = en_core_web_sm.load()
@@ -112,7 +123,7 @@ def generate_corpus():
     threadID = 1
 
     for i in range(number_of_threads):
-        thread = myThread(threadID, threadNameList[i], listsList[i], lines)
+        thread = myThread(threadID, threadNameList[i], listsList[i],)
         thread.start()
         threadList.append(thread)
         threadID += 1
@@ -121,7 +132,7 @@ def generate_corpus():
         t.join()
 
 
-    for filename in os.listdir(".\\sample_set"):
+    for filename in files:
         with open('.\\sample_set\\' + filename, 'r', encoding='utf-8') as myfile:
             text = myfile.read()
             title = filename.replace(".txt", "").strip()
