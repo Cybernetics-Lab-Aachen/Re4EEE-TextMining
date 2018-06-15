@@ -80,12 +80,13 @@ def filter_twitter(corpus):
             if twitter_removal in title.lower():
                 save = corpus[title]
                 del corpus[title]
-                corpus.update({re.sub(twitter_removal, "", title.lower()).strip(): save})
+                corpus.update({re.sub(twitter_removal, "", title).strip(): save})
     return corpus
 
-# TODO make titles lowercase
+
 # Get the corpus from the sample files (returns a doc title : cleaned split string dictionary)
 def generate_corpus():
+    # Multithreading
     corpus = {}
     files = os.listdir(".\\sample_set")
     number_of_threads = 30
@@ -124,17 +125,19 @@ def generate_corpus():
     for t in threadList:
         t.join()
 
-
+    # Filter files and generate corpus
     for filename in os.listdir(".\\sample_set"):
         with open('.\\sample_set\\' + filename, 'r', encoding='utf-8') as myfile:
             text = myfile.read()
             title = filename.replace(".txt", "").strip()
-            # Make sure title not about school or person/Don't add a text unless it contains some education keywords
+            # Don't add a text unless it contains education keywords
             if all(whitelist_word in text.lower() for whitelist_word in text_whitelist):
                 processed_title = nlp(title)
+                # Make sure title not about school or person
                 if not any(ent.label_ == "PERSON" or ent.label_ == "GPE" for ent in processed_title.ents) and \
                         not any(blacklist_word in title.lower() for blacklist_word in title_blacklist):
-                    corpus.update({title: CleanWikiDocs.process(text).split()})
+                    # Update corpus entry
+                    corpus.update({title.lower(): CleanWikiDocs.process(text).split()})
     return corpus
 
 
