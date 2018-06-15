@@ -37,7 +37,7 @@ def download_file(url):
 def runThroughArticles(numbers, lines):
     for i in numbers:
         title = lines[i].split(":")[2].strip("\n")
-        if not any(title in file for file in os.listdir("./sample_set")):
+        if not any(title in file for file in os.listdir("../sample_set")):
             try:
                 webpage = requests.get("http://triton.zlw-ima.rwth-aachen.de:50001/wikipedia/getArticleByTitle?title=" + urllib.parse.quote_plus(title)).content
             except ConnectionError as e:  # This is the correct syntax
@@ -48,17 +48,15 @@ def runThroughArticles(numbers, lines):
 def readArticle(webpage, title):
         soup = bs4.BeautifulSoup(webpage, "lxml")
         text = soup.getText().lower()
-        if ('learn' in text or 'educat' in text) and ('teach' in text or 'student' in text) \
-                and ('method' in text or 'tool' in text or 'concept' in text or 'platform' in text or 'tech' in text):
-            file = open('./sample_set/' + re.sub("[^A-Za-z]", " ", title) + '.txt', 'w', encoding='utf-8')
-            file.write(text)
-            file.close()
+        file = open('..\\sample_set\\' + re.sub("[^\w\d]", " ", title, re.UNICODE) + '.txt', 'w', encoding='utf-8')
+        file.write(text)
+        file.close()
     
 def split_list(a_list):
     half = int(len(a_list)/2)
     return a_list[:half], a_list[half:]
 
-my_randoms = random.sample(range(1, 18458000), 50000)
+my_randoms = random.sample(range(1, 1841800), 5000)
 
 try:
     download_file("https://dumps.wikimedia.org/enwiki/20180501/enwiki-20180501-pages-articles-multistream-index.txt.bz2")
@@ -76,42 +74,42 @@ print("Index file read and written")
 index = open("./index.txt", "r", encoding="utf-8")
 lines = index.readlines()
 
-x, y = split_list(my_randoms)
+number_of_threads = 30
+num_elements_per_thread = int(5000/number_of_threads)
+listsList = []
+threadNameList = []
+beginning_element = 0
+ending_element = num_elements_per_thread
 
-first, second = split_list(x)
-third, fourth = split_list(y)
+for i in range (0, number_of_threads):
+    thread_name = "Thread-" + str(i)
+    threadNameList.append(thread_name)
 
-one, two = split_list(first)
-three, four = split_list(second)
-five, six = split_list(third)
-seven, eight = split_list(fourth)
+    list_to_add = list()
 
-A, B = split_list(one)
-C, D = split_list(two)
-E, F = split_list(three)
-G, H = split_list(four)
-I, J = split_list(five)
-K, L = split_list(six)
-M, N = split_list(seven)
-O, P = split_list(eight)
+    for j in range(beginning_element, ending_element):
+        list_to_add.append(my_randoms[j])
 
-listsList = [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P]
-threadNameList = ["Thread-1","Thread-2","Thread-3","Thread-4","Thread-5","Thread-6",
-                "Thread-7","Thread-8","Thread-9","Thread-10","Thread-11","Thread-12",
-                "Thread-13","Thread-14","Thread-15","Thread-16"]
+    beginning_element += num_elements_per_thread
+    ending_element += num_elements_per_thread
+
+    listsList.append(list_to_add)
+
 threadList = []
 threadID = 1
 
-start_time = int(time.process_time())
 
-for i in range(16):
+for i in range(number_of_threads):
     thread = myThread(threadID, threadNameList[i], listsList[i], lines)
     thread.start()
     threadList.append(thread)
     threadID += 1
 
+start_time = int(time.process_time())
+
 for t in threadList:
    t.join()
+
 
 print(int(time.process_time() - start_time), "seconds")
 print ("Exiting Main Thread")

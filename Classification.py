@@ -87,6 +87,44 @@ def filter_twitter(corpus):
 # Get the corpus from the sample files (returns a doc title : cleaned split string dictionary)
 def generate_corpus():
     corpus = {}
+    files = os.listdir(".\\sample_set")
+    number_of_threads = 30
+    num_elements_per_thread = int(len(files)/number_of_threads)
+    if num_elements_per_thread < 1:
+        import sys
+        sys.exit("Number of files is less than amount of threads. Didn't want to write catch code, so program will exit")
+    listsList = []
+    threadNameList = []
+    beginning_element = 0
+    ending_element = num_elements_per_thread
+
+    for i in range (0, number_of_threads):
+        thread_name = "Thread-" + str(i)
+        threadNameList.append(thread_name)
+
+        list_to_add = list()
+
+        for j in range(beginning_element, ending_element):
+            list_to_add.append(files[j])
+
+        beginning_element += num_elements_per_thread
+        ending_element += num_elements_per_thread
+
+        listsList.append(list_to_add)
+
+    threadList = []
+    threadID = 1
+
+    for i in range(number_of_threads):
+        thread = myThread(threadID, threadNameList[i], listsList[i], lines)
+        thread.start()
+        threadList.append(thread)
+        threadID += 1
+
+    for t in threadList:
+        t.join()
+
+
     for filename in os.listdir(".\\sample_set"):
         with open('.\\sample_set\\' + filename, 'r', encoding='utf-8') as myfile:
             text = myfile.read()
