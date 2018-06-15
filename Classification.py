@@ -5,6 +5,7 @@ import os
 import operator
 import en_core_web_sm
 import time
+<<<<<<< HEAD
 import threading
 
 class myThread (threading.Thread):
@@ -16,6 +17,9 @@ class myThread (threading.Thread):
       self.lines = lines
    def run(self):
       runThroughArticles(self.numbers, self.lines)
+=======
+import re
+>>>>>>> f4ac70524b9a0788f195b3bb2f5cc901cc3ffcb8
 
 # Initialize entity model
 nlp = en_core_web_sm.load()
@@ -23,6 +27,8 @@ nlp = en_core_web_sm.load()
 # Create blacklist/whitelist
 title_blacklist = ['college', 'university', 'school', 'academy', 'institute', 'centre']
 text_whitelist = ['educat', 'technolog', 'learn', 'student']
+twitter_blacklist = ['inc.', 'app']
+
 
 # Calculate term relevance for a document compared to all docs. Returns sorted list of tuples
 def compute_tfidf(doc_text, text_corpus):
@@ -51,11 +57,11 @@ def filter_tfidf(corpus):
         # Get current document word to tfidf tuple list
         curr_tuple_list = iterate[key]
         found = False
-        # For each of top 15 scoring words
+        # For each of top 25 scoring words
         for i in range(len(curr_tuple_list) - 1, len(curr_tuple_list) - 26, -1):
             if len(curr_tuple_list) < 25:
                 break
-            # Check if top 15 words contain keywords relating to education, if not, delete article from list
+            # Check if top 25 words contain keywords relating to education, if not, delete article from list
             if any(whitelist_word in curr_tuple_list[i][0] for whitelist_word in text_whitelist):
                 found = True
                 corpus.update({key: curr_tuple_list[len(curr_tuple_list) - 26: len(curr_tuple_list) -1]})
@@ -65,17 +71,7 @@ def filter_tfidf(corpus):
     return corpus
 
 
-# Get word2int translation. Return a word : integer dictionary given a string input
-def word2int(words):
-    words = words.split()
-    words = set(words)
-    word2int = {}
-    for i, word in enumerate(words):
-        word2int[word] = i
-    return word2int
-
-
-# Get word2vec representation (returns word vector given word)
+# Get word2vec representation (returns word vector given word)(not finished)
 def compute_word2vec(corpus):
     data = []
     window_size = 2
@@ -91,8 +87,20 @@ def compute_word2vec(corpus):
     return ''
 
 
+# Filter the corpus for twitter
+def filter_twitter(corpus):
+    for title in corpus.keys():
+        for twitter_removal in twitter_blacklist:
+            if twitter_removal in title.lower():
+                save = corpus[title]
+                del corpus[title]
+                corpus.update({re.sub(twitter_removal, "", title).strip(): save})
+    return corpus
+
+
 # Get the corpus from the sample files (returns a doc title : cleaned split string dictionary)
 def generate_corpus():
+    # Multithreading
     corpus = {}
     files = os.listdir(".\\sample_set")
     number_of_threads = 30
@@ -136,17 +144,26 @@ def generate_corpus():
         with open('.\\sample_set\\' + filename, 'r', encoding='utf-8') as myfile:
             text = myfile.read()
             title = filename.replace(".txt", "").strip()
-            # Make sure title not about school or person/Don't add a text unless it contains some education keywords
+            # Don't add a text unless it contains education keywords
             if all(whitelist_word in text.lower() for whitelist_word in text_whitelist):
                 processed_title = nlp(title)
+                # Make sure title not about school or person
                 if not any(ent.label_ == "PERSON" or ent.label_ == "GPE" for ent in processed_title.ents) and \
                         not any(blacklist_word in title.lower() for blacklist_word in title_blacklist):
-                    corpus.update({title: CleanWikiDocs.process(text).split()})
+                    # Update corpus entry
+                    corpus.update({title.lower(): CleanWikiDocs.process(text).split()})
     return corpus
 
 
-# Generate corpus (apply filter)
+
 t = time.clock()
+
+# Generate corpus (apply filter)
 corpus = generate_corpus()
 print(corpus.keys())
+
+# Filter the corpus title for twitter lookup
+corpus = filter_twitter(corpus)
+print(corpus.keys())
+
 print(time.clock() - t)
