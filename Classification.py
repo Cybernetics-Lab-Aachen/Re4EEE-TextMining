@@ -5,6 +5,7 @@ import os
 import operator
 import en_core_web_sm
 import time
+import re
 
 # Initialize entity model
 nlp = en_core_web_sm.load()
@@ -12,6 +13,8 @@ nlp = en_core_web_sm.load()
 # Create blacklist/whitelist
 title_blacklist = ['college', 'university', 'school', 'academy', 'institute', 'centre']
 text_whitelist = ['educat', 'technolog', 'learn', 'student']
+twitter_blacklist = ['inc.', 'app']
+
 
 # Calculate term relevance for a document compared to all docs. Returns sorted list of tuples
 def compute_tfidf(doc_text, text_corpus):
@@ -40,11 +43,11 @@ def filter_tfidf(corpus):
         # Get current document word to tfidf tuple list
         curr_tuple_list = iterate[key]
         found = False
-        # For each of top 15 scoring words
+        # For each of top 25 scoring words
         for i in range(len(curr_tuple_list) - 1, len(curr_tuple_list) - 26, -1):
             if len(curr_tuple_list) < 25:
                 break
-            # Check if top 15 words contain keywords relating to education, if not, delete article from list
+            # Check if top 25 words contain keywords relating to education, if not, delete article from list
             if any(whitelist_word in curr_tuple_list[i][0] for whitelist_word in text_whitelist):
                 found = True
                 corpus.update({key: curr_tuple_list[len(curr_tuple_list) - 26: len(curr_tuple_list) -1]})
@@ -54,17 +57,7 @@ def filter_tfidf(corpus):
     return corpus
 
 
-# Get word2int translation. Return a word : integer dictionary given a string input
-def word2int(words):
-    words = words.split()
-    words = set(words)
-    word2int = {}
-    for i, word in enumerate(words):
-        word2int[word] = i
-    return word2int
-
-
-# Get word2vec representation (returns word vector given word)
+# Get word2vec representation (returns word vector given word)(not finished)
 def compute_word2vec(corpus):
     data = []
     window_size = 2
@@ -80,6 +73,17 @@ def compute_word2vec(corpus):
     return ''
 
 
+# Filter the corpus for twitter
+def filter_twitter(corpus):
+    for title in corpus.keys():
+        for twitter_removal in twitter_blacklist:
+            if twitter_removal in title.lower():
+                save = corpus[title]
+                del corpus[title]
+                corpus.update({re.sub(twitter_removal, "", title.lower()).strip(): save})
+    return corpus
+
+# TODO make titles lowercase
 # Get the corpus from the sample files (returns a doc title : cleaned split string dictionary)
 def generate_corpus():
     corpus = {}
@@ -96,8 +100,15 @@ def generate_corpus():
     return corpus
 
 
-# Generate corpus (apply filter)
+
 t = time.clock()
+
+# Generate corpus (apply filter)
 corpus = generate_corpus()
 print(corpus.keys())
+
+# Filter the corpus title for twitter lookup
+corpus = filter_twitter(corpus)
+print(corpus.keys())
+
 print(time.clock() - t)
