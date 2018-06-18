@@ -5,7 +5,17 @@ import os
 import operator
 import en_core_web_sm
 import time
-import re
+import threading
+
+class myThread (threading.Thread):
+   def __init__(self, threadID, name, numbers, lines):
+      threading.Thread.__init__(self)
+      self.threadID = threadID
+      self.name = name
+      self.numbers = numbers
+      self.lines = lines
+   def run(self):
+      runThroughArticles(self.numbers, self.lines)
 
 # Initialize entity model
 nlp = en_core_web_sm.load()
@@ -86,8 +96,6 @@ def filter_twitter(corpus):
 
 # Get the corpus from the sample files (returns a doc title : cleaned split string dictionary)
 def generate_corpus():
-    # Filter files and generate corpus
-    for filename in os.listdir(".\\sample_set"):
         with open('.\\sample_set\\' + filename, 'r', encoding='utf-8') as myfile:
             text = myfile.read()
             title = filename.replace(".txt", "").strip()
