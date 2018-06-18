@@ -56,7 +56,9 @@ def split_list(a_list):
     half = int(len(a_list)/2)
     return a_list[:half], a_list[half:]
 
-my_randoms = random.sample(range(1, 1841800), 5000)
+number_of_elements = 1000
+
+my_randoms = random.sample(range(1, 1841800), number_of_elements)
 
 try:
     download_file("https://dumps.wikimedia.org/enwiki/20180501/enwiki-20180501-pages-articles-multistream-index.txt.bz2")
@@ -75,7 +77,7 @@ index = open("./index.txt", "r", encoding="utf-8")
 lines = index.readlines()
 
 number_of_threads = 30
-num_elements_per_thread = int(5000/number_of_threads)
+num_elements_per_thread = int(number_of_elements/number_of_threads)
 listsList = []
 threadNameList = []
 beginning_element = 0
@@ -113,15 +115,3 @@ for t in threadList:
 
 print(int(time.process_time() - start_time), "seconds")
 print ("Exiting Main Thread")
-
-# First attempt 2 threads: 68.29056655360719 seconds
-# Second attempt 2 threads: 64.14474363742802 seconds
-
-# First attempt 4 threads: 44.99423248871253 seconds
-# Second attempt 4 threads: 45.05058939539863 seconds
-
-# First attempt 8 threads: 30.3525312760942 seconds
-# Second attempt 8 threads: 34.02615105961444 seconds
-
-# First attempt 16 threads: 29.629705987882847 seconds
-# Second attempt 16 threads: 29.743744575895587 seconds
