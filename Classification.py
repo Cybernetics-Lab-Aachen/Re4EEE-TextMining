@@ -1,21 +1,14 @@
-# Class for handling classification algorithms
+##############################################
+# Script for handling classification algorithms
+# Author: Devin Johnson, RWTH Aachen IMA/IFU
+##############################################
+
 from wikipedia_files import CleanWikiDocs
 import math
 import os
 import operator
 import en_core_web_sm
 import time
-import threading
-
-class myThread (threading.Thread):
-   def __init__(self, threadID, name, numbers, lines):
-      threading.Thread.__init__(self)
-      self.threadID = threadID
-      self.name = name
-      self.numbers = numbers
-      self.lines = lines
-   def run(self):
-      runThroughArticles(self.numbers, self.lines)
 
 # Initialize entity model
 nlp = en_core_web_sm.load()

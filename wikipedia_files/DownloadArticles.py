@@ -1,3 +1,8 @@
+##############################################
+# Script for downloading wikipedia articles
+# Author: Devin Johnson, RWTH Aachen IMA/IFU
+##############################################
+
 import bs4
 import requests
 import os

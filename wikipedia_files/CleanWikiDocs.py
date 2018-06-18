@@ -1,4 +1,8 @@
-# A script for cleaning up wikipedia dump files and preprocessing
+##############################################
+# Script for cleaning wikipedia dump text
+# Author: Devin Johnson, RWTH Aachen IMA/IFU
+##############################################
+
 import re
 import nltk
 import contractions
