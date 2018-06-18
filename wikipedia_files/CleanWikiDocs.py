@@ -5,10 +5,15 @@ import contractions
 import inflect
 from nltk.corpus import stopwords
 from nltk.stem import LancasterStemmer, WordNetLemmatizer
+from nltk.corpus import wordnet as wn
+
 
 # Some important variables
 english_words = set(nltk.corpus.words.words())
 stops = set(stopwords.words("english"))
+print(wn.__class__)          # <class 'nltk.corpus.util.LazyCorpusLoader'>
+wn.ensure_loaded()           # first access to wn transforms it
+print(wn.__class__)          # <class 'nltk.corpus.reader.wordnet.WordNetCorpusReader'>
 
 # Remove brackets, punctuation etc.
 def denoise(sample):

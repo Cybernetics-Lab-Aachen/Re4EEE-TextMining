@@ -6,16 +6,18 @@ import operator
 import en_core_web_sm
 import time
 import threading
+import re
 
 class myThread (threading.Thread):
-   def __init__(self, threadID, name, numbers, lines):
+   def __init__(self, threadID, name, files, corpus):
       threading.Thread.__init__(self)
       self.threadID = threadID
       self.name = name
-      self.numbers = numbers
-      self.lines = lines
+      self.files = files
+      self.corpus = corpus
    def run(self):
-      runThroughArticles(self.numbers, self.lines)
+       for filename in self.files:
+           download_for_corpus(self.corpus, filename)
 
 # Initialize entity model
 nlp = en_core_web_sm.load()
@@ -93,6 +95,19 @@ def filter_twitter(corpus):
                 corpus.update({re.sub(twitter_removal, "", title).strip(): save})
     return corpus
 
+def download_for_corpus(corpus, filename):
+    with open('.\\sample_set\\' + filename, 'r', encoding='utf-8') as myfile:
+            text = myfile.read()
+            title = filename.replace(".txt", "").strip()
+            # Don't add a text unless it contains education keywords
+            if all(whitelist_word in text.lower() for whitelist_word in text_whitelist):
+                processed_title = nlp(title)
+                # Make sure title not about school or person
+                if not any(ent.label_ == "PERSON" or ent.label_ == "GPE" for ent in processed_title.ents) and \
+                        not any(blacklist_word in title.lower() for blacklist_word in title_blacklist):
+                    # Update corpus entry
+                    corpus.update({title.lower(): CleanWikiDocs.process(text).split()})
+
 
 # Get the corpus from the sample files (returns a doc title : cleaned split string dictionary)
 def generate_corpus():
@@ -127,7 +142,7 @@ def generate_corpus():
     threadID = 1
 
     for i in range(number_of_threads):
-        thread = myThread(threadID, threadNameList[i], listsList[i],)
+        thread = myThread(threadID, threadNameList[i], listsList[i], corpus)
         thread.start()
         threadList.append(thread)
         threadID += 1
@@ -136,7 +151,7 @@ def generate_corpus():
         t.join()
 
 
-    for filename in files:
+    """ for filename in files:
         with open('.\\sample_set\\' + filename, 'r', encoding='utf-8') as myfile:
             text = myfile.read()
             title = filename.replace(".txt", "").strip()
@@ -147,7 +162,7 @@ def generate_corpus():
                 if not any(ent.label_ == "PERSON" or ent.label_ == "GPE" for ent in processed_title.ents) and \
                         not any(blacklist_word in title.lower() for blacklist_word in title_blacklist):
                     # Update corpus entry
-                    corpus.update({title.lower(): CleanWikiDocs.process(text).split()})
+                    corpus.update({title.lower(): CleanWikiDocs.process(text).split()}) """
     return corpus
 
 
