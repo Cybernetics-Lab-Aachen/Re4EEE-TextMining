@@ -21,10 +21,9 @@ class myThread (threading.Thread):
 
 def runThroughArticles(numbers, lines):
     i = 0
-    print(numbers)
     length = len(numbers)
     while i < length:
-        title = lines[i].split(":")[2].strip("\n")
+        title = lines[numbers[i]].split(":")[2].strip("\n")
         if not any(title in file for file in os.listdir(".\\sample_set")):
             webpage = requests.get("http://triton.zlw-ima.rwth-aachen.de:50001/wikipedia/getArticleByTitle?title=" + urllib.parse.quote_plus(title)).content
             soup = bs4.BeautifulSoup(webpage, "lxml")
