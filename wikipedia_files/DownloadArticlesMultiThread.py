@@ -18,6 +18,7 @@ class myThread (threading.Thread):
    def run(self):
       runThroughArticles(self.numbers, self.lines)
 
+# Runs through random number list, and reads in that specific article from server
 def runThroughArticles(numbers, lines):
     for i in numbers:
         title = lines[i].split(":")[2].strip("\n")
@@ -29,27 +30,28 @@ def runThroughArticles(numbers, lines):
             file.write(text)
             file.close()
 
-
+# Command line argument for number of threads
 """ if len(sys.argv) >= 2:
     number_of_threads = sys.argv[1]
 else:
     number_of_threads = 30 """
 
-# Read index file
+# Read index file from online
 """ url = "https://dumps.wikimedia.org/enwiki/20180501/enwiki-20180501-pages-articles-multistream-index.txt.bz2"
 local_filename = url.split('/')[-1]
 r = requests.get(url, stream=True)
 with open(local_filename, 'wb') as f:
     shutil.copyfileobj(r.raw, f) """
 
+# Read index file from desktop
 index = open("C:\\Users\\useradmin\\Desktop\\index.txt", "r", encoding="utf-8")
 lines = index.readlines()
 
 start_time = time.clock()
 count = 0
-my_randoms = random.sample(range(1, 1841800), 5000)
-number_of_threads = 30
 number_of_elements = 5000
+my_randoms = random.sample(range(1, 1841800), number_of_elements)
+number_of_threads = 30
 num_elements_per_thread = int(number_of_elements/number_of_threads)
 randomNumberListList = []
 threadNameList = []
@@ -58,6 +60,7 @@ ending_element = num_elements_per_thread
 threadList = []
 threadID = 1
 
+# Make thread and random number lists for each thread
 for i in range (number_of_threads):
     thread_name = "Thread-".join(str(i))
     threadNameList.append(thread_name)
@@ -72,6 +75,7 @@ for i in range (number_of_threads):
 
     randomNumberListList.append(list_to_add)
 
+# Start every thread and add them all to thread list
 for i in range(number_of_threads):
     thread = myThread(threadID, threadNameList[i], randomNumberListList[i], lines)
     thread.start()
