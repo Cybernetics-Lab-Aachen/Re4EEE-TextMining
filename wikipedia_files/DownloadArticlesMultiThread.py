@@ -1,20 +1,12 @@
-import threading
-import time
 import bs4
 import requests
 import os
 import urllib.parse
 import re
+import time
 import random
-import shutil
-import bz2
-from requests.exceptions import ConnectionError
+import threading
 
-
-# import sqlite3
-# # Connect to sqlite
-# connection = sqlite3.connect('wikiarticles.db')
-# c = connection.cursor()
 
 class myThread (threading.Thread):
    def __init__(self, threadID, name, numbers, lines):
@@ -26,65 +18,36 @@ class myThread (threading.Thread):
    def run(self):
       runThroughArticles(self.numbers, self.lines)
 
-def download_file(url):
-    local_filename = url.split('/')[-1]
-    r = requests.get(url, stream=True)
-    with open(local_filename, 'wb') as f:
-        shutil.copyfileobj(r.raw, f)
-
-    return local_filename
-
 def runThroughArticles(numbers, lines):
     for i in numbers:
         title = lines[i].split(":")[2].strip("\n")
-        if not any(title in file for file in os.listdir("../sample_set")):
-            try:
-                webpage = requests.get("http://triton.zlw-ima.rwth-aachen.de:50001/wikipedia/getArticleByTitle?title=" + urllib.parse.quote_plus(title)).content
-            except ConnectionError as e:  # This is the correct syntax
-                print(e)
-                exit(1)
-            readArticle(webpage, title)           
+        if not any(title in file for file in os.listdir("..\\sample_set")):
+            webpage = requests.get("http://triton.zlw-ima.rwth-aachen.de:50001/wikipedia/getArticleByTitle?title=" + urllib.parse.quote_plus(title)).content
+            soup = bs4.BeautifulSoup(webpage, "lxml")
+            text = soup.getText().lower()
+            file = open('..\\sample_set\\' + re.sub("[^\w\d]", " ", title, re.UNICODE) + '.txt', 'w', encoding='utf-8')
+            file.write(text)
+            file.close()
 
-def readArticle(webpage, title):
-        soup = bs4.BeautifulSoup(webpage, "lxml")
-        text = soup.getText().lower()
-        file = open('..\\sample_set\\' + re.sub("[^\w\d]", " ", title, re.UNICODE) + '.txt', 'w', encoding='utf-8')
-        file.write(text)
-        file.close()
-    
-def split_list(a_list):
-    half = int(len(a_list)/2)
-    return a_list[:half], a_list[half:]
-
-number_of_elements = 1000
-
-my_randoms = random.sample(range(1, 1841800), number_of_elements)
-
-try:
-    download_file("https://dumps.wikimedia.org/enwiki/20180501/enwiki-20180501-pages-articles-multistream-index.txt.bz2")
-except ConnectionError as e:  # This is the correct syntax
-    print(e)
-    exit(1)
-
-filepath = os.path.join("./", "enwiki-20180501-pages-articles-multistream-index.txt.bz2")
-newfilepath = os.path.join("./", 'index.txt')
-with open(newfilepath, 'wb') as new_file, bz2.BZ2File(filepath, 'rb') as file:
-    for data in iter(lambda : file.read(100 * 1024), b''):
-        new_file.write(data)
-print("Index file read and written")
 # Read index file
-index = open("./index.txt", "r", encoding="utf-8")
+index = open("C:\\Users\\useradmin\\Desktop\\index.txt", "r", encoding="utf-8")
 lines = index.readlines()
 
+start_time = time.clock()
+count = 0
+my_randoms = random.sample(range(1, 1841800), 5000)
 number_of_threads = 30
+number_of_elements = 5000
 num_elements_per_thread = int(number_of_elements/number_of_threads)
-listsList = []
+randomNumberListList = []
 threadNameList = []
 beginning_element = 0
 ending_element = num_elements_per_thread
+threadList = []
+threadID = 1
 
-for i in range (0, number_of_threads):
-    thread_name = "Thread-" + str(i)
+for i in range (number_of_threads):
+    thread_name = "Thread-".join(str(i))
     threadNameList.append(thread_name)
 
     list_to_add = list()
@@ -95,23 +58,20 @@ for i in range (0, number_of_threads):
     beginning_element += num_elements_per_thread
     ending_element += num_elements_per_thread
 
-    listsList.append(list_to_add)
-
-threadList = []
-threadID = 1
-
+    randomNumberListList.append(list_to_add)
 
 for i in range(number_of_threads):
-    thread = myThread(threadID, threadNameList[i], listsList[i], lines)
+    thread = myThread(threadID, threadNameList[i], randomNumberListList[i], lines)
     thread.start()
     threadList.append(thread)
     threadID += 1
 
-start_time = int(time.process_time())
-
 for t in threadList:
    t.join()
+ 
+print(time.clock() - start_time, "seconds")
 
-
-print(int(time.process_time() - start_time), "seconds")
-print ("Exiting Main Thread")
+# 5000 articles: 566.347404 seconds: 0.1132 seconds per article
+#                643.93     seconds: 0.128  seconds per article
+#                722.51     seconds
+#                816.5216356999999 seconds

@@ -26,10 +26,8 @@ for i in range(rand, rand + 5000):
         file.write(text)
         file.close()
     count += 1
-    print(time.clock() - start_time, "seconds")
+ 
+print(time.clock() - start_time, "seconds")
 
-# First runtime: 113.6837302730916 seconds
-# Second runtime: 124.2169789555012 seconds
-# Third runtime: 111.41879792404077 seconds
-# Fourth runtime: 111.0834045599835 seconds
-# Fifth runtime: 98.12181727716322 seconds
+# 5000 articles: 1283.7004358 seconds: 0.2567 seconds per article
+
