@@ -1,14 +1,15 @@
 ##############################################
-# Script for handling classification algorithms
+# Script for classifying wikipedia articles of interest
 # Author: Devin Johnson, RWTH Aachen IMA/IFU
 ##############################################
 
-from wikipedia_files import CleanWikiDocs
+from wikipedia_files import CleanWikiDoc
 import math
 import os
 import operator
 import en_core_web_sm
 import time
+import re
 
 # Initialize entity model
 nlp = en_core_web_sm.load()
@@ -60,22 +61,6 @@ def filter_tfidf(corpus):
     return corpus
 
 
-# Get word2vec representation (returns word vector given word)(not finished)
-def compute_word2vec(corpus):
-    data = []
-    window_size = 2
-    # For each text in the corpus
-    for text in corpus.values():
-        # Enumerate text
-        for word_index, word in enumerate(text):
-            # Apply the window to the text, add neighbouring pairs to the data list (ensures no out of bounds)
-            for neighbour in text[max(word_index - window_size, 0): min(word_index + window_size, len(text)) + 1]:
-                if neighbour != word:
-                    data.append([word, neighbour])
-    # Convert the word pairs into numbers
-    return ''
-
-
 # Filter the corpus for twitter
 def filter_twitter(corpus):
     for title in corpus.keys():
@@ -89,6 +74,9 @@ def filter_twitter(corpus):
 
 # Get the corpus from the sample files (returns a doc title : cleaned split string dictionary)
 def generate_corpus():
+    # Filter files and generate corpus
+    corpus = {}
+    for filename in os.listdir(".\\sample_set"):
         with open('.\\sample_set\\' + filename, 'r', encoding='utf-8') as myfile:
             text = myfile.read()
             title = filename.replace(".txt", "").strip()
@@ -99,19 +87,16 @@ def generate_corpus():
                 if not any(ent.label_ == "PERSON" or ent.label_ == "GPE" for ent in processed_title.ents) and \
                         not any(blacklist_word in title.lower() for blacklist_word in title_blacklist):
                     # Update corpus entry
-                    corpus.update({title.lower(): CleanWikiDocs.process(text).split()})
+                    corpus.update({title.lower(): CleanWikiDoc.process(text).split()})
     return corpus
-
 
 
 t = time.clock()
 
 # Generate corpus (apply filter)
 corpus = generate_corpus()
-print(corpus.keys())
 
 # Filter the corpus title for twitter lookup
 corpus = filter_twitter(corpus)
 print(corpus.keys())
-
 print(time.clock() - t)

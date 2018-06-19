@@ -14,6 +14,7 @@ from nltk.stem import LancasterStemmer, WordNetLemmatizer
 english_words = set(nltk.corpus.words.words())
 stops = set(stopwords.words("english"))
 
+
 # Remove brackets, punctuation etc.
 def denoise(sample):
     index = sample.find("Text")
