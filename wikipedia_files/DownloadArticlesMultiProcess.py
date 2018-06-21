@@ -1,3 +1,5 @@
+# NOTE: This code should be considered depracated. It seems as if my machine is unable to handle multiprocessing programs, 
+# as for any mp, the machine takes longer with mp than with the regular version of the program.
 import time
 import bs4
 import requests
@@ -9,42 +11,47 @@ from multiprocessing import Process
 from functools import partial
 import multiprocessing as mp
 
+# Runs through random number list, and reads in that specific article from server
 def runThroughArticles(numbers, lines):
     for i in numbers:
         title = lines[i].split(":")[2].strip("\n")
         if not any(title in file for file in os.listdir("..\\sample_set")):
-           webpage = requests.get("http://triton.zlw-ima.rwth-aachen.de:50001/wikipedia/getArticleByTitle?title=" + urllib.parse.quote_plus(title)).content
-           readArticle(webpage, title)
-        print(time.clock() - start_time, "seconds")
-
-def readArticle(webpage, title):
-    soup = bs4.BeautifulSoup(webpage, "lxml")
-    text = soup.getText().lower()
-    if ('learn' in text or 'educat' in text) and ('teach' in text or 'student' in text) \
-            and ('method' in text or 'tool' in text or 'concept' in text or 'platform' in text or 'tech' in text):
-        file = open('..\\sample_set\\' + re.sub("[^A-Za-z]", " ", title) + '.txt', 'w', encoding='utf-8')
-        file.write(text)
-        file.close()
-
-def split_list(a_list):
-    half = int(len(a_list)/2)
-    return a_list[:half], a_list[half:]
+            webpage = requests.get("http://triton.zlw-ima.rwth-aachen.de:50001/wikipedia/getArticleByTitle?title=" + urllib.parse.quote_plus(title)).content
+            soup = bs4.BeautifulSoup(webpage, "lxml")
+            text = soup.getText().lower()
+            file = open('..\\sample_set\\' + re.sub("[^\w\d]", " ", title, re.UNICODE) + '.txt', 'w', encoding='utf-8')
+            file.write(text)
+            file.close()
 
 # Read index file
 index = open("C:\\Users\\useradmin\\Desktop\\index.txt", "r", encoding="utf-8")
 lines = index.readlines()
 
+# Seperate random number list into two lists
 my_randoms = random.sample(range(1, 18458000), 1000)
-x, y = split_list(my_randoms)
+x = my_randoms[:len(my_randoms)/2]
+y = my_randoms[len(my_randoms)/2:]
 list_nums = [x, y]
 
 start_time = time.clock()
 
+# Start multiprocessing of data
 if __name__ == '__main__':
-    pool = mp.Pool(processes=2)
-    results = pool.map(partial(runThroughArticles, lines=lines), list_nums)
+    for i in list_nums:
+        """ pool = mp.Pool(processes=2)
+        results = pool.map(partial(runThroughArticles, lines=lines), list_nums) """
+        p = Process(target=runThroughArticles, args=(i, lines))
+        p.Daemon = True
+        p.start()
+    
+    
+    for i in list_nums:
+        p.join()
+
+    print(time.clock() - start_time, "seconds")
 
 # First attempt 2 processes: 173.67093533933854 seconds
 # Second attempt 2 processes: 194.74739417197685 seconds
-
 # First attempt 4 processes: > 228.62999951557669 seconds
+# 435.0994541 seconds, 345.4183772 seconds, 405.8439787 seconds
+# 405.8439787 seconds, 424.70200040000003 seconds, 378.7717576 seconds

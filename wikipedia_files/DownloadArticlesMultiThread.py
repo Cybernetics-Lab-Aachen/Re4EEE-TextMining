@@ -7,7 +7,7 @@ import time
 import random
 import threading
 
-
+# Thread class
 class myThread (threading.Thread):
    def __init__(self, threadID, name, numbers, lines):
       threading.Thread.__init__(self)
@@ -47,6 +47,7 @@ with open(local_filename, 'wb') as f:
 index = open("C:\\Users\\useradmin\\Desktop\\index.txt", "r", encoding="utf-8")
 lines = index.readlines()
 
+# Get start time and set up variables
 start_time = time.clock()
 count = 0
 number_of_elements = 5000
@@ -60,7 +61,7 @@ ending_element = num_elements_per_thread
 threadList = []
 threadID = 1
 
-# Make thread and random number lists for each thread
+# Create thread name and random number lists for each thread
 for i in range (number_of_threads):
     thread_name = "Thread-".join(str(i))
     threadNameList.append(thread_name)
@@ -75,19 +76,22 @@ for i in range (number_of_threads):
 
     randomNumberListList.append(list_to_add)
 
-# Start every thread and add them all to thread list
+# Create and start every thread and add them all to thread list
 for i in range(number_of_threads):
     thread = myThread(threadID, threadNameList[i], randomNumberListList[i], lines)
     thread.start()
     threadList.append(thread)
     threadID += 1
 
+# Join threads so they all terminate at the same time
 for t in threadList:
    t.join()
- 
+
+# Print exit time 
 print(time.clock() - start_time, "seconds")
 
 # 5000 articles: 566.347404 seconds: 0.1132 seconds per article
 #                643.93     seconds: 0.128  seconds per article
 #                722.51     seconds
 #                816.5216356999999 seconds
+# Note: these tests were done sucsessively, so the hardware heating problems could have played a role in the steadility increasing program time.
