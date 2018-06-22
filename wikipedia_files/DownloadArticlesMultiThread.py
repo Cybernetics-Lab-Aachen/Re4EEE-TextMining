@@ -6,6 +6,7 @@ import re
 import time
 import random
 import threading
+import shutil
 
 # Thread class
 class myThread (threading.Thread):
