@@ -3,7 +3,7 @@
 # Author: Devin Johnson, RWTH Aachen IMA/IFU
 ##############################################
 
-from wikipedia_files import CleanWikiDoc
+import CleanWikiDoc
 import math
 import os
 import operator
@@ -15,9 +15,10 @@ import re
 nlp = en_core_web_sm.load()
 
 # Create blacklist/whitelist
-title_blacklist = ['college', 'university', 'school', 'academy', 'institute', 'centre']
-text_whitelist = ['educat', 'technolog', 'learn', 'student']
+title_blacklist = ['college', 'university', 'school', 'academy', 'institute', 'centre', 'association', 'center']
 twitter_blacklist = ['inc.', 'app']
+words_of_interest = ['educat', 'technolog', 'learn', 'teach' 'student', 'platform', 'program',
+                  'learning platform', 'tool', 'software', 'comput']
 
 
 # Calculate term relevance for a document compared to all docs. Returns sorted list of tuples
@@ -36,7 +37,8 @@ def compute_tfidf(doc_text, text_corpus):
         for doc_text2 in text_corpus:
             if word in doc_text2:
                 docs_with_word += 1
-        tfidfdict.update({word: (math.log(len(text_corpus) / docs_with_word)) * tfidfdict[word]})
+        if docs_with_word != 0:
+            tfidfdict.update({word: (math.log(len(text_corpus) / docs_with_word)) * tfidfdict[word]})
     return sorted(tfidfdict.items(), key=operator.itemgetter(1))
 
 
@@ -52,7 +54,7 @@ def filter_tfidf(corpus):
             if len(curr_tuple_list) < 25:
                 break
             # Check if top 25 words contain keywords relating to education, if not, delete article from list
-            if any(whitelist_word in curr_tuple_list[i][0] for whitelist_word in text_whitelist):
+            if any(word in curr_tuple_list[i][0] for word in words_of_interest):
                 found = True
                 corpus.update({key: curr_tuple_list[len(curr_tuple_list) - 26: len(curr_tuple_list) -1]})
                 break
@@ -61,15 +63,13 @@ def filter_tfidf(corpus):
     return corpus
 
 
-# Filter the corpus for twitter
-def filter_twitter(corpus):
-    for title in corpus.keys():
-        for twitter_removal in twitter_blacklist:
-            if twitter_removal in title.lower():
-                save = corpus[title]
-                del corpus[title]
-                corpus.update({re.sub(twitter_removal, "", title).strip(): save})
-    return corpus
+# Determine how many important words are in the text. Return true if over 80%
+def majority_whitelist(text):
+    count = 0
+    for whitelist_word in words_of_interest:
+        if whitelist_word in text:
+            count += 1
+    return float(count / len(words_of_interest)) >= 0.80
 
 
 # Get the corpus from the sample files (returns a doc title : cleaned split string dictionary)
@@ -80,8 +80,8 @@ def generate_corpus():
         with open('.\\sample_set\\' + filename, 'r', encoding='utf-8') as myfile:
             text = myfile.read()
             title = filename.replace(".txt", "").strip()
-            # Don't add a text unless it contains education keywords
-            if all(whitelist_word in text.lower() for whitelist_word in text_whitelist):
+            # Don't add a text unless it contains majority of whitelist words
+            if majority_whitelist(text.lower()):
                 processed_title = nlp(title)
                 # Make sure title not about school or person
                 if not any(ent.label_ == "PERSON" or ent.label_ == "GPE" for ent in processed_title.ents) and \
@@ -92,11 +92,6 @@ def generate_corpus():
 
 
 t = time.clock()
-
-# Generate corpus (apply filter)
 corpus = generate_corpus()
-
-# Filter the corpus title for twitter lookup
-corpus = filter_twitter(corpus)
 print(corpus.keys())
 print(time.clock() - t)

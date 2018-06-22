@@ -55,7 +55,7 @@ lines = index.readlines()
 
 start_time = time.clock()
 count = 0
-number_of_elements = 121919
+number_of_elements = 40
 my_randoms = random.sample(range(1, 18459094), number_of_elements)
 number_of_threads = 30
 num_elements_per_thread = int(number_of_elements/number_of_threads)
