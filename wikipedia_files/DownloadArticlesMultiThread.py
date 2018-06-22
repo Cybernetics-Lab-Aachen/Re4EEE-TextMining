@@ -37,15 +37,15 @@ else:
     number_of_threads = 30 """
 
 # Read index file from online
-""" url = "https://dumps.wikimedia.org/enwiki/20180501/enwiki-20180501-pages-articles-multistream-index.txt.bz2"
+url = "https://dumps.wikimedia.org/enwiki/20180501/enwiki-20180501-pages-articles-multistream-index.txt.bz2"
 local_filename = url.split('/')[-1]
 r = requests.get(url, stream=True)
 with open(local_filename, 'wb') as f:
-    shutil.copyfileobj(r.raw, f) """
+    shutil.copyfileobj(r.raw, f)
 
-# Read index file from desktop
+""" # Read index file from desktop
 index = open("C:\\Users\\useradmin\\Desktop\\index.txt", "r", encoding="utf-8")
-lines = index.readlines()
+lines = index.readlines() """
 
 # Get start time and set up variables
 start_time = time.clock()
