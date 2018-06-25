@@ -7,6 +7,7 @@ import time
 import random
 import threading
 import shutil
+import bz2
 
 # Thread class
 class myThread (threading.Thread):
@@ -43,10 +44,15 @@ local_filename = url.split('/')[-1]
 r = requests.get(url, stream=True)
 with open(local_filename, 'wb') as f:
     shutil.copyfileobj(r.raw, f)
+filepath = os.path.join("./", "enwiki-20180501-pages-articles-multistream-index.txt.bz2")
+newfilepath = os.path.join("./", 'index.txt')
+with open(newfilepath, 'wb') as new_file, bz2.BZ2File(filepath, 'rb') as file:
+    for data in iter(lambda : file.read(100 * 1024), b''):
+        new_file.write(data)
 
-""" # Read index file from desktop
+# Read index file from computer
 index = open("C:\\Users\\useradmin\\Desktop\\index.txt", "r", encoding="utf-8")
-lines = index.readlines() """
+lines = index.readlines()
 
 # Get start time and set up variables
 start_time = time.clock()
