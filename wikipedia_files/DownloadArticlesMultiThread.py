@@ -24,11 +24,11 @@ class myThread (threading.Thread):
 def runThroughArticles(numbers, lines):
     for i in numbers:
         title = lines[i].split(":")[2].strip("\n")
-        if not any(title in file for file in os.listdir("..\\sample_set")):
+        if not any(title in file for file in os.listdir("/home/sample_set")):
             webpage = requests.get("http://triton.zlw-ima.rwth-aachen.de:50001/wikipedia/getArticleByTitle?title=" + urllib.parse.quote_plus(title)).content
             soup = bs4.BeautifulSoup(webpage, "lxml")
             text = soup.getText().lower()
-            file = open('..\\sample_set\\' + re.sub("[^\w\d]", " ", title, re.UNICODE) + '.txt', 'w', encoding='utf-8')
+            file = open('/home/sample_set/' + re.sub("[^\w\d]", " ", title, re.UNICODE) + '.txt', 'w', encoding='utf-8')
             file.write(text)
             file.close()
 
@@ -51,7 +51,7 @@ with open(newfilepath, 'wb') as new_file, bz2.BZ2File(filepath, 'rb') as file:
         new_file.write(data)
 
 # Read index file from computer
-index = open("C:\\Users\\useradmin\\Desktop\\index.txt", "r", encoding="utf-8")
+index = open(".\\index.txt", "r", encoding="utf-8")
 lines = index.readlines()
 
 # Get start time and set up variables
