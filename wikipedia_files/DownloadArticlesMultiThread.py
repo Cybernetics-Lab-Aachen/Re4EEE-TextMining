@@ -24,7 +24,7 @@ class myThread (threading.Thread):
 def runThroughArticles(numbers, lines):
     for i in numbers:
         title = lines[i].split(":")[2].strip("\n")
-        if not any(title in file for file in os.listdir("/home/sample_set")):
+        if not any(title in file for file in os.listdir("/home/sample_set/.")):
             webpage = requests.get("http://triton.zlw-ima.rwth-aachen.de:50001/wikipedia/getArticleByTitle?title=" + urllib.parse.quote_plus(title)).content
             soup = bs4.BeautifulSoup(webpage, "lxml")
             text = soup.getText().lower()
