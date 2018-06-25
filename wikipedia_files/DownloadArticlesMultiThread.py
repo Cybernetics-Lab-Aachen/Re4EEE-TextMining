@@ -51,7 +51,7 @@ with open(newfilepath, 'wb') as new_file, bz2.BZ2File(filepath, 'rb') as file:
         new_file.write(data)
 
 # Read index file from computer
-index = open(".\\index.txt", "r", encoding="utf-8")
+index = open("./index.txt", "r", encoding="utf-8")
 lines = index.readlines()
 
 # Get start time and set up variables
