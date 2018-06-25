@@ -66,8 +66,8 @@ def filter_tfidf(corpus):
 # Determine how many important words are in the text. Return true if over 80%
 def majority_whitelist(text):
     count = 0
-    for whitelist_word in words_of_interest:
-        if whitelist_word in text:
+    for word in words_of_interest:
+        if word in text:
             count += 1
     return float(count / len(words_of_interest)) >= 0.80
 
@@ -80,7 +80,7 @@ def generate_corpus():
         with open('.\\sample_set\\' + filename, 'r', encoding='utf-8') as myfile:
             text = myfile.read()
             title = filename.replace(".txt", "").strip()
-            # Don't add a text unless it contains majority of whitelist words
+            # Don't add a text unless it contains majority of whitelist worda
             if majority_whitelist(text.lower()):
                 processed_title = nlp(title)
                 # Make sure title not about school or person
@@ -91,6 +91,12 @@ def generate_corpus():
     return corpus
 
 
+# Count frequencies of e-learning in tweets
+def count_elearning():
+    # Get twitter data
+
+
+# Get a count for how many corpus items are mentioned in twitter
 t = time.clock()
 corpus = generate_corpus()
 print(corpus.keys())

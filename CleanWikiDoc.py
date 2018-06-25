@@ -6,7 +6,6 @@
 import re
 import nltk
 import contractions
-import inflect
 from nltk.corpus import stopwords
 from nltk.stem import LancasterStemmer, WordNetLemmatizer
 
@@ -26,19 +25,6 @@ def denoise(sample):
 # Replace contractions with full words to prevent duplicates
 def replace_contractions(sample):
     return contractions.fix(sample)
-
-
-# Replace numbers with word equivalents
-def replace_nums(words):
-    p = inflect.engine()
-    new_words = []
-    for word in words:
-        if word.isdigit():
-            new_word = p.number_to_words(word)
-            new_words.append(new_word)
-        else:
-            new_words.append(word)
-    return new_words
 
 
 # Lemmatize verbs
@@ -89,7 +75,6 @@ def process(text):
 
     # Tokenize, normalize, lemmatize, remove low frequency words
     words = nltk.word_tokenize(text)
-    words = replace_nums(words)
     words = remove_stops(words)
     words = lemmatize(words)
     words = remove_low_frequency(words)
