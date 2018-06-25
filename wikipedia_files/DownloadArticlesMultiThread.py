@@ -25,7 +25,11 @@ def runThroughArticles(numbers, lines):
     for i in numbers:
         title = lines[i].split(":")[2].strip("\n")
         if not any(title in file for file in os.listdir("/home/sample_set/.")):
-            webpage = requests.get("http://triton.zlw-ima.rwth-aachen.de:50001/wikipedia/getArticleByTitle?title=" + urllib.parse.quote_plus(title)).content
+            try:
+                webpage = requests.get("http://triton.zlw-ima.rwth-aachen.de:50001/wikipedia/getArticleByTitle?title=" + urllib.parse.quote_plus(title)).content
+            except Exception:
+                print("Connection error regarding ", urllib.parse.quote_plus(title))
+
             soup = bs4.BeautifulSoup(webpage, "lxml")
             text = soup.getText().lower()
             file = open('/home/sample_set/' + re.sub("[^\w\d]", " ", title, re.UNICODE) + '.txt', 'w', encoding='utf-8')
