@@ -1,5 +1,5 @@
 ##############################################
-# Script for cleaning wikipedia dump text
+# Script for cleaning wikipedia/twitter dump text
 # Author: Devin Johnson, RWTH Aachen IMA/IFU
 ##############################################
 
