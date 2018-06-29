@@ -1,8 +1,11 @@
-# A script for cleaning up wikipedia dump files and preprocessing
+##############################################
+# Script for cleaning wikipedia/twitter dump text
+# Author: Devin Johnson, RWTH Aachen IMA/IFU
+##############################################
+
 import re
 import nltk
 import contractions
-import inflect
 from nltk.corpus import stopwords
 from nltk.stem import LancasterStemmer, WordNetLemmatizer
 from nltk.corpus import wordnet as wn
@@ -15,6 +18,7 @@ print(wn.__class__)          # <class 'nltk.corpus.util.LazyCorpusLoader'>
 wn.ensure_loaded()           # first access to wn transforms it
 print(wn.__class__)          # <class 'nltk.corpus.reader.wordnet.WordNetCorpusReader'>
 
+
 # Remove brackets, punctuation etc.
 def denoise(sample):
     index = sample.find("Text")
@@ -26,19 +30,6 @@ def denoise(sample):
 # Replace contractions with full words to prevent duplicates
 def replace_contractions(sample):
     return contractions.fix(sample)
-
-
-# Replace numbers with word equivalents
-def replace_nums(words):
-    p = inflect.engine()
-    new_words = []
-    for word in words:
-        if word.isdigit():
-            new_word = p.number_to_words(word)
-            new_words.append(new_word)
-        else:
-            new_words.append(word)
-    return new_words
 
 
 # Lemmatize verbs
@@ -89,7 +80,6 @@ def process(text):
 
     # Tokenize, normalize, lemmatize, remove low frequency words
     words = nltk.word_tokenize(text)
-    words = replace_nums(words)
     words = remove_stops(words)
     words = lemmatize(words)
     words = remove_low_frequency(words)
