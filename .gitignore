@@ -105,3 +105,5 @@ venv.bak/
 
 .idea
 sample_set/
+tweets.json
+wikipedia.xml
