@@ -23,8 +23,10 @@ class myThread (threading.Thread):
 # Runs through random number list, and reads in that specific article from server
 def runThroughArticles(numbers, lines):
     for i in numbers:
+        print(i, "    ",lines[i])
         title = lines[i].split(":")[2].strip("\n")
-        if not any(title in file for file in os.listdir("/home/sample_set/.")):
+        # if not any(title in file for file in os.listdir("/home/sample_set/.")):
+        if not any(title in file for file in os.listdir("./sample_set")):
             try:
                 webpage = requests.get("http://triton.zlw-ima.rwth-aachen.de:50001/wikipedia/getArticleByTitle?title=" + urllib.parse.quote_plus(title)).content
             except Exception:
@@ -32,7 +34,8 @@ def runThroughArticles(numbers, lines):
 
             soup = bs4.BeautifulSoup(webpage, "lxml")
             text = soup.getText().lower()
-            file = open('/home/sample_set/' + re.sub("[^\w\d]", " ", title, re.UNICODE) + '.txt', 'w', encoding='utf-8')
+            # file = open('/home/sample_set/' + re.sub("[^\w\d]", " ", title, re.UNICODE) + '.txt', 'w', encoding='utf-8')
+            file = open('./sample_set/' + re.sub("[^\w\d]", " ", title, re.UNICODE) + '.txt', 'w', encoding='utf-8')
             file.write(text)
             file.close()
 
