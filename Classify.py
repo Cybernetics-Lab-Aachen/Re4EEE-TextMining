@@ -83,6 +83,24 @@ def count_occurrences(wikis, tweets):
 wikis = fix_titles(generate_wikipedia_data())
 tweets = generate_tweet_data()
 counts = count_occurrences(wikis, tweets)
+
 print(counts)
+
+from collections import OrderedDict
+sorted_counts = OrderedDict(sorted(counts.items(), key=lambda x: x[1]))
+sorted_counts = {k:v for k,v in sorted_counts.items() if v != 0}
+print(sorted_counts)
+
+import numpy as np
+import matplotlib.pyplot as plt
+ 
+y_pos = np.arange(len(sorted_counts))
+plt.bar(y_pos, sorted_counts.values(), align='center', alpha=0.5)
+plt.xticks(y_pos, sorted_counts.keys())
+plt.tick_params(axis='both', labelsize=6)
+plt.ylabel('Usage')
+plt.title('Words')
+plt.show()
+
 
 
