@@ -5,15 +5,19 @@
 
 import os
 import en_core_web_sm
+import random
 import re
 import json
+import time
+from xml.etree.cElementTree import iterparse
+
 
 # Initialize entity model
 nlp = en_core_web_sm.load()
 
 # Create blacklist/whitelist
 title_blacklist = ['college', 'university', 'school', 'academy', 'institute', 'centre', 'association', 'center']
-twitter_blacklist = ['inc.', 'app', 'technologies']
+twitter_blacklist = ['inc.', 'app', 'technologies', 'list of', ' of ', 'by type', ' by ', '.com', ' and ']
 words_of_interest = ['educat', 'technolog', 'learn', 'teach' 'student', 'platform', 'program',
                   'learning platform', 'tool', 'software', 'comput']
 
@@ -27,23 +31,40 @@ def majority_whitelist(text):
     return float(count / len(words_of_interest)) >= 0.80
 
 
-# Get the corpus from the sample files (returns a doc title : cleaned split string dictionary)
+# Get the corpus from the sample files
 def generate_wikipedia_data():
-    # Filter files and generate corpus
-    list = []
-    for filename in os.listdir(".\\sample_set"):
-        with open('.\\sample_set\\' + filename, 'r', encoding='utf-8') as myfile:
-            text = myfile.read()
-            title = filename.replace(".txt", "").strip()
-            # Don't add a text unless it contains majority of whitelist worda
-            if majority_whitelist(text.lower()):
-                processed_title = nlp(title)
-                # Make sure title not about school or person
-                if not any(ent.label_ == "PERSON" or ent.label_ == "GPE" for ent in processed_title.ents) and \
-                        not any(blacklist_word in title.lower() for blacklist_word in title_blacklist):
-                    # Update corpus entry
-                    list.append(title.lower())
-    return list
+    num_analyzed = 0
+    on_topic = []
+    title = ""
+    text = ""
+    # Go through XML
+    for event, elem in iterparse(".\\wikipedia.xml"):
+        # Make sure not reached number needed for sample of 1%
+        if not num_analyzed <= 184591:
+            break
+        # Try to get title and text
+        if "title" in elem.tag:
+            title = elem.text
+        if "text" in elem.tag:
+            text = elem.text
+        # A title:text pair has been made
+        if text != "" and title != "" and text is not None and title is not None:
+            # With random chance choose to analyze it
+            if bool(random.getrandbits(1)):
+                num_analyzed += 1
+                print(num_analyzed)
+                # Make sure it's not already been analyzed and that its text is relevant
+                if majority_whitelist(text.lower()):
+                    # Make sure title is relevant
+                    processed_title = nlp(title)
+                    if not any(ent.label_ == "PERSON" or ent.label_ == "GPE" for ent in processed_title.ents) and \
+                            not any(blacklist_word in title.lower() for blacklist_word in title_blacklist):
+                        on_topic.append(title.lower())
+            # Clear variables to keep going
+            title = ""
+            text = ""
+        elem.clear()
+    return on_topic
 
 
 # Get tweet data
@@ -80,9 +101,11 @@ def count_occurrences(wikis, tweets):
 
 
 # Get a count for how many corpus items are mentioned in twitter
+t = time.clock()
 wikis = fix_titles(generate_wikipedia_data())
 tweets = generate_tweet_data()
 counts = count_occurrences(wikis, tweets)
+print(time.clock() - t)
 print(counts)
 
 
