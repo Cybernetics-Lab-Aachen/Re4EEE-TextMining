@@ -1,4 +1,6 @@
+# Downloads index file, and downloads 5000 random wikipedia articles from server using multithreading using custom thread class
 # NOTE: Runtime is about 3300 seconds
+
 import bs4
 import requests
 import os
@@ -104,9 +106,3 @@ for t in threadList:
 
 # Print exit time 
 print(time.clock() - start_time, "seconds")
-
-# 5000 articles: 566.347404 seconds: 0.1132 seconds per article
-#                643.93     seconds: 0.128  seconds per article
-#                722.51     seconds
-#                816.5216356999999 seconds
-# Note: these tests were done sucsessively, so the hardware heating problems could have played a role in the steadility increasing program time.

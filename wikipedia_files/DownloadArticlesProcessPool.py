@@ -1,5 +1,6 @@
+# Downloads 5000 random wikipedia articles from server using multiprocessing using Process Pool class
 # NOTE: Runtime is about 454 seconds
-# NOTE: This code should be considered depracated. Run time with no multiprocessing was ~100 seconds, run time with multiprocessing was ~220 seconds.
+
 import time
 import bs4
 import requests
@@ -7,7 +8,6 @@ import os
 import urllib.parse
 import re
 import random
-from functools import partial
 
 list_of_files = os.listdir("..\\sample_set")
 

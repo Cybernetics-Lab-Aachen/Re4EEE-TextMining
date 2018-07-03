@@ -1,4 +1,6 @@
+# Downloads 5000 random wikipedia articles from server using multithreading using threading.Thread class
 # NOTE: Runtime is about 193 seconds
+
 import time
 import bs4
 import requests
@@ -6,10 +8,6 @@ import os
 import urllib.parse
 import re
 import random
-from functools import partial
-import multiprocessing as mp
-
-
 import queue
 import threading
 
