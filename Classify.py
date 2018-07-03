@@ -3,9 +3,7 @@
 # Author: Devin Johnson, RWTH Aachen IMA/IFU
 ##############################################
 
-import os
 import en_core_web_sm
-import random
 import re
 import json
 import time
@@ -39,9 +37,6 @@ def generate_wikipedia_data():
     text = ""
     # Go through XML
     for event, elem in iterparse(".\\wikipedia.xml"):
-        # Make sure not reached number needed for sample of 1%
-        if not num_analyzed <= 184591:
-            break
         # Try to get title and text
         if "title" in elem.tag:
             title = elem.text
@@ -49,17 +44,16 @@ def generate_wikipedia_data():
             text = elem.text
         # A title:text pair has been made
         if text != "" and title != "" and text is not None and title is not None:
-            # With random chance choose to analyze it
-            if bool(random.getrandbits(1)):
-                num_analyzed += 1
+            num_analyzed += 1
+            if num_analyzed % 100000 == 0:
                 print(num_analyzed)
-                # Make sure it's not already been analyzed and that its text is relevant
-                if majority_whitelist(text.lower()):
-                    # Make sure title is relevant
-                    processed_title = nlp(title)
-                    if not any(ent.label_ == "PERSON" or ent.label_ == "GPE" for ent in processed_title.ents) and \
-                            not any(blacklist_word in title.lower() for blacklist_word in title_blacklist):
-                        on_topic.append(title.lower())
+            # Make sure it's not already been analyzed and that its text is relevant
+            if majority_whitelist(text.lower()):
+                # Make sure title is relevant
+                processed_title = nlp(title)
+                if not any(ent.label_ == "PERSON" or ent.label_ == "GPE" for ent in processed_title.ents) and \
+                        not any(blacklist_word in title.lower() for blacklist_word in title_blacklist):
+                    on_topic.append(title.lower())
             # Clear variables to keep going
             title = ""
             text = ""
@@ -83,6 +77,7 @@ def fix_titles(titles):
     for i in range(len(titles)):
         for twitter_blacklist_word in twitter_blacklist:
             titles[i] = re.sub(twitter_blacklist_word, "", titles[i])
+            titles[i] = re.sub(r'\(.*?\)', "", titles[i]).strip()
     return titles
 
 
@@ -95,7 +90,7 @@ def count_occurrences(wikis, tweets):
     # Get counts of wiki topics showing in tweets
     for wiki in wikis:
         for tweet in tweets:
-            if wiki in tweet.lower() or re.sub(" ", "", wiki) in tweet.lower():
+            if wiki in tweet.lower() or re.sub(r" ", "", wiki) in tweet.lower():
                 counts.update({wiki: counts[wiki] + 1})
     return counts
 
