@@ -1,4 +1,5 @@
-# NOTE: Runtime is about 498 seconds
+# NOTE: Runtime is about 200 seconds
+# NOTE: This code should be considered depracated. Run time with no multiprocessing was ~100 seconds, run time with multiprocessing was ~220 seconds.
 import time
 import bs4
 import requests
@@ -8,10 +9,6 @@ import re
 import random
 from functools import partial
 import multiprocessing as mp
-
-
-import queue
-import threading
 
 list_of_files = os.listdir("..\\sample_set")
 
@@ -27,7 +24,9 @@ for num in my_randoms:
 
 start_time = time.clock()
 
-for title in input:
+from multiprocessing.pool import ThreadPool
+
+def job(title):
     if not any(title in file for file in list_of_files):
         webpage = requests.get("http://triton.zlw-ima.rwth-aachen.de:50001/wikipedia/getArticleByTitle?title=" + urllib.parse.quote_plus(title)).content
         soup = bs4.BeautifulSoup(webpage, "lxml")
@@ -36,4 +35,7 @@ for title in input:
         file.write(text)
         file.close()
 
-print(time.clock() - start_time, "seconds")
+if __name__ == '__main__':
+    pool = ThreadPool()
+    pool.map(job, input)
+    print(time.clock() - start_time, "seconds")
