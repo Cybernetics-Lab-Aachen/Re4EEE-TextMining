@@ -3,17 +3,21 @@
 # Author: Devin Johnson, RWTH Aachen IMA/IFU
 ##############################################
 
-import os
 import en_core_web_sm
 import re
 import json
+import time
+from xml.etree.cElementTree import iterparse
+from collections import OrderedDict
+import numpy as np
+import matplotlib.pyplot as plt
 
 # Initialize entity model
 nlp = en_core_web_sm.load()
 
 # Create blacklist/whitelist
 title_blacklist = ['college', 'university', 'school', 'academy', 'institute', 'centre', 'association', 'center']
-twitter_blacklist = ['inc.', 'app', 'technologies']
+twitter_blacklist = ['inc.', 'app', 'technologies', 'list of', ' of ', 'by type', ' by ', '.com', ' and ']
 words_of_interest = ['educat', 'technolog', 'learn', 'teach' 'student', 'platform', 'program',
                   'learning platform', 'tool', 'software', 'comput']
 
@@ -27,23 +31,38 @@ def majority_whitelist(text):
     return float(count / len(words_of_interest)) >= 0.80
 
 
-# Get the corpus from the sample files (returns a doc title : cleaned split string dictionary)
+# Get the corpus from the sample files
 def generate_wikipedia_data():
-    # Filter files and generate corpus
-    list = []
-    for filename in os.listdir(".\\sample_set"):
-        with open('.\\sample_set\\' + filename, 'r', encoding='utf-8') as myfile:
-            text = myfile.read()
-            title = filename.replace(".txt", "").strip()
-            # Don't add a text unless it contains majority of whitelist worda
+    num_analyzed = 0
+    on_topic = []
+    title = ""
+    text = ""
+    # Go through XML
+    for event, elem in iterparse(".\\wikipedia.xml"):
+        if num_analyzed == 500000:
+            break
+        # Try to get title and text
+        if "title" in elem.tag:
+            title = elem.text
+        if "text" in elem.tag:
+            text = elem.text
+        # A title:text pair has been made
+        if text != "" and title != "" and text is not None and title is not None:
+            num_analyzed += 1
+            if num_analyzed % 100000 == 0:
+                print(num_analyzed)
+            # Make sure it's not already been analyzed and that its text is relevant
             if majority_whitelist(text.lower()):
+                # Make sure title is relevant
                 processed_title = nlp(title)
-                # Make sure title not about school or person
                 if not any(ent.label_ == "PERSON" or ent.label_ == "GPE" for ent in processed_title.ents) and \
                         not any(blacklist_word in title.lower() for blacklist_word in title_blacklist):
-                    # Update corpus entry
-                    list.append(title.lower())
-    return list
+                    on_topic.append(title.lower())
+            # Clear variables to keep going
+            title = ""
+            text = ""
+        elem.clear()
+    return on_topic
 
 
 # Get tweet data
@@ -62,6 +81,7 @@ def fix_titles(titles):
     for i in range(len(titles)):
         for twitter_blacklist_word in twitter_blacklist:
             titles[i] = re.sub(twitter_blacklist_word, "", titles[i])
+            titles[i] = re.sub(r'\(.*?\)', "", titles[i]).strip()
     return titles
 
 
@@ -74,33 +94,37 @@ def count_occurrences(wikis, tweets):
     # Get counts of wiki topics showing in tweets
     for wiki in wikis:
         for tweet in tweets:
-            if wiki in tweet.lower() or re.sub(" ", "", wiki) in tweet.lower():
+            if wiki in tweet.lower() or re.sub(r" ", "", wiki) in tweet.lower():
                 counts.update({wiki: counts[wiki] + 1})
     return counts
 
 
+# Output a graph of results
+# Author: Chris Bohlman
+def output_graph(counts):
+    sorted_counts = OrderedDict(sorted(counts.items(), key=lambda x: x[1]))
+    sorted_counts = {k: v for k, v in sorted_counts.items() if v != 0}
+    y_pos = np.arange(len(sorted_counts))
+    plt.bar(y_pos, sorted_counts.values(), align='center', alpha=0.5)
+    plt.xticks(y_pos, sorted_counts.keys())
+    plt.tick_params(axis='both', labelsize=6)
+    plt.ylabel('Usage')
+    plt.title('Words')
+    plt.show()
+
+
 # Get a count for how many corpus items are mentioned in twitter
+t = time.clock()
 wikis = fix_titles(generate_wikipedia_data())
 tweets = generate_tweet_data()
 counts = count_occurrences(wikis, tweets)
-
 print(counts)
+output_graph(counts)
+print(time.clock() - t)
 
-from collections import OrderedDict
-sorted_counts = OrderedDict(sorted(counts.items(), key=lambda x: x[1]))
-sorted_counts = {k:v for k,v in sorted_counts.items() if v != 0}
-print(sorted_counts)
 
-import numpy as np
-import matplotlib.pyplot as plt
- 
-y_pos = np.arange(len(sorted_counts))
-plt.bar(y_pos, sorted_counts.values(), align='center', alpha=0.5)
-plt.xticks(y_pos, sorted_counts.keys())
-plt.tick_params(axis='both', labelsize=6)
-plt.ylabel('Usage')
-plt.title('Words')
-plt.show()
+
+
 
 
 
