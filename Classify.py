@@ -31,8 +31,10 @@ def majority_whitelist(text):
 def generate_wikipedia_data():
     # Filter files and generate corpus
     list = []
-    for filename in os.listdir(".\\sample_set"):
-        with open('.\\sample_set\\' + filename, 'r', encoding='utf-8') as myfile:
+    """ for filename in os.listdir(".\\sample_set"):
+        with open('.\\sample_set\\' + filename, 'r', encoding='utf-8') as myfile: """
+    for filename in os.listdir("/home/sample_set/."):
+        with open('/home/sample_set/' + filename, 'r', encoding='utf-8') as myfile:
             text = myfile.read()
             title = filename.replace(".txt", "").strip()
             # Don't add a text unless it contains majority of whitelist worda
@@ -49,8 +51,9 @@ def generate_wikipedia_data():
 # Get tweet data
 def generate_tweet_data():
     # Get twitter data
-    with open('.\\tweets.json', 'r', encoding='utf-8') as file:
-        text = json.loads(file.read())
+    import urllib.request, json 
+    with urllib.request.urlopen("http://triton.zlw-ima.rwth-aachen.de:50001/twitter") as url:
+        text = json.loads(url.read().decode())
         list = []
         for p in text["Tweets"]:
             list.append(p["Text"])
