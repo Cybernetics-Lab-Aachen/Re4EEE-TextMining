@@ -4,5 +4,6 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 RUN pip install bs4
 RUN pip install -U spacy
+RUN spacy download en
 ADD ./Classify.py /
 CMD [ "python", "./Classify.py" ]
