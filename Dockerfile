@@ -1,4 +1,5 @@
 FROM continuumio/anaconda3:5.2.0
+RUN pip install cmake
 RUN pip install bs4
 RUN pip install -U spacy
 ADD ./Classify.py /
