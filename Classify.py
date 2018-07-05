@@ -38,7 +38,7 @@ def generate_wikipedia_data():
     title = ""
     text = ""
     # Go through XML
-    for event, elem in iterparse("/home/wikipedia.xml"):
+    for event, elem in iterparse("/home/enwiki-20170820-pages-articles-multistream.xml"):
         if num_analyzed == 50000:
             break
         # Try to get title and text
