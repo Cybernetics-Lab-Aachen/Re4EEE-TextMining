@@ -2,6 +2,7 @@ FROM continuumio/anaconda3:5.2.0
 RUN apt-get update && \
     apt-get -y install g++ mono-mcs && \
     rm -rf /var/lib/apt/lists/*
+RUN apt-get install -y python-qt4
 RUN pip install bs4
 RUN pip install -U spacy
 RUN spacy download en
