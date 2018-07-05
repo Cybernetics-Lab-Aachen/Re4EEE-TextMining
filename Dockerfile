@@ -1,5 +1,7 @@
 FROM continuumio/anaconda3:5.2.0
-RUN pip install cmake
+RUN apt-get update && \
+    apt-get -y install gcc mono-mcs && \
+    rm -rf /var/lib/apt/lists/*
 RUN pip install bs4
 RUN pip install -U spacy
 ADD ./Classify.py /
