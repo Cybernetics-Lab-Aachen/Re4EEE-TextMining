@@ -11,6 +11,8 @@ from xml.etree.cElementTree import iterparse
 from collections import OrderedDict
 import numpy as np
 import matplotlib.pyplot as plt
+import time
+time.sleep(5)
 
 # Initialize entity model
 nlp = en_core_web_sm.load()
