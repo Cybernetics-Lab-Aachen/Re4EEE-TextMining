@@ -62,7 +62,6 @@ def generate_wikipedia_data():
                         title = re.sub(twitter_blacklist_word, "", title.lower()).strip()
                     on_topic.append(title)
             # Clear variables to keep going
-            num_processed += 1
             title = ""
             text = ""
     return on_topic
