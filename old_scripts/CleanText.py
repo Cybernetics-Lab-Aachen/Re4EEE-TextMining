@@ -14,9 +14,7 @@ from nltk.corpus import wordnet as wn
 # Some important variables
 english_words = set(nltk.corpus.words.words())
 stops = set(stopwords.words("english"))
-print(wn.__class__)          # <class 'nltk.corpus.util.LazyCorpusLoader'>
-wn.ensure_loaded()           # first access to wn transforms it
-print(wn.__class__)          # <class 'nltk.corpus.reader.wordnet.WordNetCorpusReader'>
+wn.ensure_loaded()
 
 
 # Remove brackets, punctuation etc.

@@ -5,14 +5,20 @@
 
 import en_core_web_sm
 import re
+import requests
 import json
-import time
 from xml.etree.cElementTree import iterparse
 from collections import OrderedDict
 import numpy as np
 import matplotlib.pyplot as plt
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+import datetime
 
-# Initialize entity model
+# Define named-entity model
 nlp = en_core_web_sm.load()
 
 # Create blacklist/whitelist
@@ -31,26 +37,20 @@ def majority_whitelist(text):
     return float(count / len(words_of_interest)) >= 0.80
 
 
-# Generate education/technology related wikipedia articles
+# Generate education/technology related wikipedia articles from wikipedia dump file
 def generate_wikipedia_data():
-    num_analyzed = 0
-    on_topic = []
+    on_topic = []  # Article titles that are relevant
     title = ""
     text = ""
-    # Go through XML
+    # Stream XML (MAKE SURE YOU HAVE WIKIPEDIA.XML DUMP FILE)
     for event, elem in iterparse(".\\wikipedia.xml"):
-        if num_analyzed == 50000:
-            break
         # Try to get title and text
         if "title" in elem.tag:
             title = elem.text
         if "text" in elem.tag:
             text = elem.text
-        # A title:text pair has been made
+        # If a title:text pair has been made
         if text != "" and title != "" and text is not None and title is not None:
-            num_analyzed += 1
-            if num_analyzed % 1000000 == 0:
-                print(num_analyzed)
             # Make sure it's not already been analyzed and that its text is relevant
             if majority_whitelist(text.lower()):
                 # Make sure title is relevant
@@ -62,24 +62,24 @@ def generate_wikipedia_data():
                         title = re.sub(twitter_blacklist_word, "", title.lower()).strip()
                     on_topic.append(title)
             # Clear variables to keep going
+            num_processed += 1
             title = ""
             text = ""
-        elem.clear()
     return on_topic
 
 
-# Get tweet data
+# Get tweet data from API
 def generate_tweet_data():
-    # Get twitter data
-    with open('.\\tweets.json', 'r', encoding='utf-8') as file:
-        text = json.loads(file.read())
-        list = []
-        for p in text["Tweets"]:
-            list.append(p["Text"])
+    # Get the daily twitter dump and write to file
+    response = requests.get("http://triton.zlw-ima.rwth-aachen.de:50001/twitter")
+    text = json.loads(response.text)
+    list = []
+    for p in text["Tweets"]:
+        list.append(p["Text"])
     return list
 
 
-# Get counts of wikipedia topics mentioned on twitter
+# Get counts of wikipedia topics mentioned on twitter, return sorted dict
 def count_occurrences(wikis, tweets):
     counts = {}
     # Get counts of wiki topics showing in tweets
@@ -90,22 +90,25 @@ def count_occurrences(wikis, tweets):
                     counts.update({wiki: counts[wiki] + 1})
                 else:
                     counts.update({wiki: 1})
-        if wiki in counts and counts[wiki] >= 1000:
+        # Remove words with more than 2000 counts
+        if wiki in counts and counts[wiki] >= 2000:
             del (counts[wiki])
-    return counts
+    # Sort the dictionary by frequencies
+    sorted_counts = OrderedDict(sorted(counts.items(), key=lambda x: x[1]))
+    sorted_counts = {k: v for k, v in sorted_counts.items() if v != 0}
+    return sorted_counts
 
 
 # Output a graph of results (Co-author: Chris Bohlman)
 def output_graph(counts):
-    # Sort the counts
-    sorted_counts = OrderedDict(sorted(counts.items(), key=lambda x: x[1]))
-    sorted_counts = {k: v for k, v in sorted_counts.items() if v != 0}
-    keys = list(sorted_counts.keys())[len(sorted_counts) - 20: len(sorted_counts)]
-    values = list(sorted_counts.values())[len(sorted_counts) - 20: len(sorted_counts)]
+    # Cut down to length 20
+    keys = list(counts.keys())[len(counts) - 20: len(counts)]
+    values = list(counts.values())[len(counts) - 20: len(counts)]
+
     # Display top 20
     plt.ylabel('Usage')
     plt.xlabel('Words')
-    plt.title('Twitter Word:Usage')
+    plt.title('Twitter Word Usage')
     y_pos = np.arange(len(keys))
     plt.xticks(y_pos, keys)
     plt.tick_params(axis='both', labelsize=3.5, rotation=30)
@@ -113,14 +116,41 @@ def output_graph(counts):
     plt.savefig('graph_out.png', bbox_inches='tight', dpi=1000)
 
 
-# Get a count for how many corpus items are mentioned in twitter
-t = time.clock()
+# Send email with results
+def send_email(counts):
+    fromaddr = "python-server@elearning-finder.net"
+    toaddr = ['123@1230910.com']
+
+    msg = MIMEMultipart()
+    msg['From'] = fromaddr
+    msg['To'] = ", ".join(toaddr)
+    msg['Subject'] = "E-Learning Script Results: " + datetime.datetime.today().strftime('%d-%m-%Y')
+
+    body = str(counts)
+    msg.attach(MIMEText(body, 'plain'))
+    filename = "graph_out.png"
+    attachment = open(".\\graph_out.png", "rb")
+
+    part = MIMEBase('application', 'octet-stream')
+    part.set_payload(attachment.read())
+    encoders.encode_base64(part)
+    part.add_header('Content-Disposition', "attachment; filename= %s" % filename)
+    msg.attach(part)
+
+    server = smtplib.SMTP('smtp.1und1.de', 587)
+    server.starttls()
+    server.login(fromaddr, input("Your email password: "))
+    text = msg.as_string()
+    server.sendmail(fromaddr, toaddr, text)
+    server.quit()
+
+
 wikis = generate_wikipedia_data()
 tweets = generate_tweet_data()
 counts = count_occurrences(wikis, tweets)
 output_graph(counts)
-print(counts)
-print(time.clock() - t)
+send_email(counts)
+
 
 
 
