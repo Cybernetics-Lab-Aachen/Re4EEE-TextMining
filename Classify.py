@@ -43,7 +43,7 @@ def generate_wikipedia_data():
     title = ""
     text = ""
     # Stream XML (MAKE SURE YOU HAVE WIKIPEDIA.XML DUMP FILE)
-    for event, elem in iterparse(".\\wikipedia.xml"):
+    for event, elem in iterparse(".\\enwiki-20170820-pages-articles-multistream"):
         # Try to get title and text
         if "title" in elem.tag:
             title = elem.text
