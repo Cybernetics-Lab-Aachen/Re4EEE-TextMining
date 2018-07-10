@@ -118,7 +118,7 @@ def output_graph(counts):
 # Send email with results
 def send_email(counts):
     fromaddr = "python-server@elearning-finder.net"
-    toaddr = ['123@1230910.com']
+    toaddr = ['cbohlmanaz@gmail.com']
 
     msg = MIMEMultipart()
     msg['From'] = fromaddr
