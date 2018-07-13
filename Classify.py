@@ -43,6 +43,7 @@ def generate_wikipedia_data():
     title = ""
     text = ""
     # Stream XML (MAKE SURE YOU HAVE WIKIPEDIA.XML DUMP FILE)
+    # On server, make sure this file is on a volume mapped to /home
     for event, elem in iterparse("/home/enwiki-20170820-pages-articles-multistream.xml"):
         # Try to get title and text
         if "title" in elem.tag:
@@ -118,7 +119,7 @@ def output_graph(counts):
 # Send email with results
 def send_email(counts):
     fromaddr = "python-server@elearning-finder.net"
-    toaddr = ['cbohlmanaz@gmail.com']
+    toaddr = ['xxxxxxxxx@yyyyy.com']
 
     msg = MIMEMultipart()
     msg['From'] = fromaddr
